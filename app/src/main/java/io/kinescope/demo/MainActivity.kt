@@ -2,10 +2,21 @@ package io.kinescope.demo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import io.kinescope.sdk.view.KinescopePlayerView
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
     }
+
+    override fun onStart() {
+        super.onStart()
+        val player = findViewById<KinescopePlayerView>(R.id.kinescope_player)
+
+        player?.setMediaUrl("https://msk-1-storage.kinescope.io/mp4/65659012-b489-4505-9a74-f3d12e0ed656/08f8b309-97b0-4550-aed6-ccd751be5f79")
+        player?.play()
+    }
+
+
 }
