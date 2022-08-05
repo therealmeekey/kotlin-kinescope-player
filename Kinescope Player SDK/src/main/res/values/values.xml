@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="kinescope_media_button_height">52dp</dimen>
+    <dimen name="kinescope_media_button_width">71dp</dimen>
+    <style name="KinescopeMediaButton">
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+        <item name="android:layout_width">@dimen/kinescope_media_button_height</item>
+        <item name="android:layout_height">@dimen/kinescope_media_button_width</item>
+    </style>
+
+
+</resources>
