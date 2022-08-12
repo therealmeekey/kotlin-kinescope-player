@@ -7,7 +7,7 @@
 
     <com.google.android.exoplayer2.ui.StyledPlayerView
         android:id="@+id/v_exoplayer"
-        app:controller_layout_id="@layout/view_kinescope_player_ui"
+        app:controller_layout_id="@layout/exo_player_control_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintTop_toTopOf="parent"
