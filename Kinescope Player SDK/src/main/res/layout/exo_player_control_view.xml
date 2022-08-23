@@ -21,32 +21,52 @@
     android:orientation="vertical"
     tools:targetApi="28">
 
-    <ImageButton
+    <!--<ImageButton
         android:id="@+id/exo_play"
         android:background="?android:attr/selectableItemBackground"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@drawable/ic_play"
         android:layout_gravity="center"
-        />
+        />-->
 
-    <ImageButton
-        android:id="@id/exo_play_pause"
-        android:background="?android:attr/selectableItemBackground"
+    <ImageView
+        android:id="@+id/exo_play_pause"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/exo_controls_rewind"
         android:layout_gravity="center"
-        />
+        style="@style/ExoStyledControls.Button.Center.PlayPause"/>
 
-    <ImageButton
-        android:id="@id/exo_rew"
+    <!--<ImageButton
+        android:id="@id/exo_play_pause"
         android:background="?android:attr/selectableItemBackground"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@drawable/ic_pause"
         android:layout_gravity="center"
-        />
+        android:visibility="gone"
+        />-->
+
+    <!--<ImageButton
+        android:id="@id/exo_rew"
+        android:background="?android:attr/selectableItemBackground"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/exo_controls_rewind"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        />-->
+
+    <!--<ProgressBar
+        android:id="@+id/kinescope_buffering"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateDrawable="@drawable/ic_buffering"
+        android:indeterminate="true"
+        />-->
+
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -64,7 +84,9 @@
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
             android:includeFontPadding="false"
-            android:textColor="#FFFFFF"/>
+            android:textColor="#FFFFFF"
+            tools:text="0:00"
+            />
 
         <TextView
             android:layout_width="wrap_content"
@@ -85,19 +107,32 @@
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
             android:includeFontPadding="false"
-            android:textColor="#FFFFFF"/>
+            android:textColor="#FFFFFF"
+            tools:text="0:00"
+            />
 
-        <com.google.android.exoplayer2.ui.DefaultTimeBar
+        <!--<com.google.android.material.progressindicator.LinearProgressIndicator
+            android:layout_width="0dp"
+            android:layout_height="26dp"
+            android:layout_weight="1"
+
+
+            />-->
+
+        <io.kinescope.sdk.view.KinescopeTimeBar
             android:id="@id/exo_progress"
             android:layout_width="0dp"
             android:layout_height="26dp"
             android:layout_weight="1"
             app:scrubber_drawable="@drawable/ic_scrubber"
             app:scrubber_enabled_size="24dp"
+            app:bar_height="4dp"
             app:buffered_color="@color/kinescope_progressbar_buffered_color"
             app:unplayed_color="@color/kinescope_progressbar_unplayed_color"
             app:played_color="@color/kinescope_progressbar_played_color"
             />
+
+
 
         <ImageButton
             android:id="@id/exo_fullscreen"
@@ -106,7 +141,7 @@
             />
 
         <ImageButton
-            android:id="@+id/kinescope_dots"
+            android:id="@+id/kinescope_settings"
             style="@style/KinescopeMediaButton"
             android:src="@drawable/ic_dots"
             />
