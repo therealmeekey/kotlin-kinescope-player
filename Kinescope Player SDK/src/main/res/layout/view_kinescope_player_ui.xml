@@ -14,7 +14,7 @@
             android:background="?android:attr/selectableItemBackground"
             android:layout_width="128dp"
             android:layout_height="128dp"
-            android:src="@drawable/ic_play"
+            android:src="@drawable/exo_styled_controls_play"
             android:layout_gravity="center"
             />
 
@@ -22,7 +22,7 @@
             android:background="?android:attr/selectableItemBackground"
             android:layout_width="128dp"
             android:layout_height="128dp"
-            android:src="@drawable/ic_pause"
+            android:src="@drawable/exo_styled_controls_pause"
             android:layout_gravity="center"
 
             />
