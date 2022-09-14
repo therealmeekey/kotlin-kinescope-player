@@ -9,7 +9,39 @@
     android:layoutDirection="ltr"
     android:background="#CC000000"
     android:orientation="vertical"
-    tools:targetApi="28">
+    tools:targetApi="28"
+    >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        >
+
+        <TextView
+            android:id="@+id/kinescope_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:textSize="20sp"
+            android:textColor="#B8B8B8"
+            tools:text="Title text"
+            />
+
+        <TextView
+            android:id="@+id/kinescope_author"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:textSize="16sp"
+            android:textColor="#B8B8B8"
+            tools:text="Author text"
+            />
+    </LinearLayout>
+
+
 
     <ImageView
         android:id="@+id/kinescope_play_pause"

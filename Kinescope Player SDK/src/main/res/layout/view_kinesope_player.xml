@@ -21,9 +21,12 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
+        <include
+            android:id="@+id/view_buffering"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            layout="@layout/view_kinescope_buffering" />
 
-
-        <!--app:controller_layout_id="@layout/exo_player_control_view"-->
 
         <include
             android:id="@+id/view_control"
