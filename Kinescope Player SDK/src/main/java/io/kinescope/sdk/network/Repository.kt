@@ -26,19 +26,26 @@ object Repository {
         })
     }
 
-    fun getAll() {
+    fun getAll(callback: GetAllVideosCallback) {
         NetworkModule.getVideoApi().getAll().enqueue(object : Callback<KinescopeAllVideosResponse> {
             override fun onResponse(
                 call: Call<KinescopeAllVideosResponse>,
                 response: Response<KinescopeAllVideosResponse>
             ) {
+                callback.onResponse(response.body()!!)
                 KinescopeLogger.log("SUCCESS")
             }
 
             override fun onFailure(call: Call<KinescopeAllVideosResponse>, t: Throwable) {
+                callback.onFailure()
                 KinescopeLogger.log("FAILURE")
             }
         })
+    }
+
+    interface GetAllVideosCallback {
+        fun onResponse(value:KinescopeAllVideosResponse)
+        fun onFailure()
     }
 
 

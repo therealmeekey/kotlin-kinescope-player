@@ -10,13 +10,17 @@ import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.ui.StyledPlayerControlView
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.ui.TimeBar
 import com.google.android.exoplayer2.util.Assertions
 import com.google.android.exoplayer2.util.Util
 import io.kinescope.sdk.R
+import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopePlayer
 
 class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
@@ -29,20 +33,27 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         private const val MAX_UPDATE_INTERVAL_MS = 1000
     }
 
+
+
     private val formatBuilder: StringBuilder = StringBuilder()
     private val formatter = java.util.Formatter(formatBuilder, java.util.Locale.getDefault())
 
     private var kinescopePlayer: KinescopePlayer? = null
     private var exoPlayerView: StyledPlayerView? = null
     private var controlView:FrameLayout? = null
-
+    private var bufferingView:View? = null
     private var positionView:TextView? = null
     private var durationView:TextView? = null
     private var timeBar:TimeBar? = null
     private var playPauseButton: View? = null
 
+    private var titleView:TextView? = null
+    private var authorView:TextView? = null
+
     private var scrubbing = false
     private var window = Timeline.Window()
+
+    private val showBuffering = 1
 
     private var currentWindowOffset: Long = 0
     private val timeBarMinUpdateIntervalMs = DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS
@@ -64,6 +75,18 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             ) {
                 updatePlayPauseButton()
             }
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            super.onPlayWhenReadyChanged(playWhenReady, reason)
+            updateBuffering()
+            //updateControllerVisibility();
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            super.onPlaybackStateChanged(playbackState)
+            updateBuffering()
+            //updateControllerVisibility()
         }
 
         override fun onScrubStart(timeBar: TimeBar, position: Long) {
@@ -95,11 +118,16 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     init {
         inflate(context, R.layout.view_kinesope_player, this)
         exoPlayerView = findViewById(R.id.view_exoplayer)
+        bufferingView = findViewById(R.id.view_buffering)
+        bufferingView?.isVisible = false
+
         controlView = findViewById(R.id.view_control)
         timeBar = controlView?.findViewById<KinescopeTimeBar>(R.id.kinescope_progress)
         positionView = controlView?.findViewById(R.id.kinescope_position)
         durationView = controlView?.findViewById(R.id.kinescope_duration)
         playPauseButton = controlView?.findViewById(R.id.kinescope_play_pause)
+        titleView = controlView?.findViewById(R.id.kinescope_title)
+        authorView = controlView?.findViewById(R.id.kinescope_author)
         setUIlisteners()
     }
 
@@ -113,6 +141,8 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         updateAll()
     }
 
+    private fun getVideo():KinescopeVideo? = kinescopePlayer?.getVideo()
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         /*isAttachedToWindow = true
@@ -122,12 +152,17 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         updateAll()
     }
 
+    fun setCustomControllerLayoutID(value:Int) {
 
-    fun setMediaUrl(url:String) {
-        kinescopePlayer?.exoPlayer?.setMediaItem(MediaItem.fromUri(url))
-        kinescopePlayer?.exoPlayer?.playWhenReady = false
-        kinescopePlayer?.exoPlayer?.prepare()
+    }
 
+    private fun updateBuffering() {
+        if (bufferingView != null) {
+            val showBufferingSpinner =
+                kinescopePlayer?.exoPlayer != null && kinescopePlayer!!.exoPlayer!!.playbackState == Player.STATE_BUFFERING && (showBuffering == StyledPlayerView.SHOW_BUFFERING_ALWAYS
+                        || showBuffering == StyledPlayerView.SHOW_BUFFERING_WHEN_PLAYING && kinescopePlayer!!.exoPlayer!!.playWhenReady)
+            bufferingView!!.isVisible = showBufferingSpinner
+        }
     }
 
     private fun updateAll() {
@@ -136,7 +171,15 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         updateNavigation()
         updateRepeatModeButton()
         updatePlaybackSpeedList()*/
+        updateBuffering()
         updateTimeline()
+        updateTitles()
+    }
+
+    private fun updateTitles() {
+        if (getVideo() == null) return
+        titleView?.text = getVideo()!!.title
+        authorView?.text = getVideo()!!.subtitle
     }
 
     private fun updatePlayPauseButton() {
