@@ -3,15 +3,18 @@ package io.kinescope.sdk.view
 import android.content.Context
 import android.os.Looper
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.ui.StyledPlayerControlView
@@ -20,6 +23,7 @@ import com.google.android.exoplayer2.ui.TimeBar
 import com.google.android.exoplayer2.util.Assertions
 import com.google.android.exoplayer2.util.Util
 import io.kinescope.sdk.R
+import io.kinescope.sdk.adapter.KinescopeSettingsAdapter
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopePlayer
 
@@ -46,9 +50,16 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private var durationView:TextView? = null
     private var timeBar:TimeBar? = null
     private var playPauseButton: View? = null
+    private var optionsButton: View? = null
+    private var fullscreenButton: View? = null
 
     private var titleView:TextView? = null
     private var authorView:TextView? = null
+
+    private var settingsWindow: PopupWindow? = null
+    private var settingsview: RecyclerView? = null
+    private var settingsAdapter: KinescopeSettingsAdapter? = null
+    private val settingsWindowMargin = resources.getDimensionPixelSize(com.google.android.exoplayer2.ui.R.dimen.exo_settings_offset)
 
     private var scrubbing = false
     private var window = Timeline.Window()
@@ -65,7 +76,11 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
                 position, bufferedPosition ->
         }
 
-    private var componentListener = object: Player.Listener, OnClickListener, TimeBar.OnScrubListener {
+    private var componentListener = object:
+        Player.Listener,
+        OnClickListener,
+        TimeBar.OnScrubListener,
+    PopupWindow.OnDismissListener {
         override fun onEvents(player: Player, events: Player.Events) {
             super.onEvents(player, events)
             if (events.containsAny(
@@ -73,7 +88,8 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
                     Player.EVENT_PLAY_WHEN_READY_CHANGED
                 )
             ) {
-                updatePlayPauseButton()
+                //updatePlayPauseButton()
+                updateAll()
             }
         }
 
@@ -111,6 +127,16 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             if (playPauseButton === view) {
                 dispatchPlayPause(player)
             }
+            else if (fullscreenButton === view) {
+
+            }
+            else if (optionsButton === view) {
+                displaySettingsWindow(settingsAdapter!!)
+            }
+        }
+
+        override fun onDismiss() {
+
         }
     }
 
@@ -126,8 +152,23 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         positionView = controlView?.findViewById(R.id.kinescope_position)
         durationView = controlView?.findViewById(R.id.kinescope_duration)
         playPauseButton = controlView?.findViewById(R.id.kinescope_play_pause)
+        optionsButton = controlView?.findViewById(R.id.kinescope_settings)
+        fullscreenButton = controlView?.findViewById(R.id.kinescope_fullscreen)
         titleView = controlView?.findViewById(R.id.kinescope_title)
         authorView = controlView?.findViewById(R.id.kinescope_author)
+
+        settingsview = LayoutInflater.from(context).inflate(R.layout.view_options_list, null) as RecyclerView?
+        settingsAdapter = KinescopeSettingsAdapter(arrayOf("Playback speed", "Quality"), null)
+        settingsview?.adapter = settingsAdapter
+        settingsview?.layoutManager = LinearLayoutManager(this@KinescopePlayerView.context, LinearLayoutManager.VERTICAL, false)
+        settingsWindow = PopupWindow(
+            settingsview,
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        settingsWindow?.setOnDismissListener(componentListener)
+
         setUIlisteners()
     }
 
@@ -154,6 +195,27 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
     fun setCustomControllerLayoutID(value:Int) {
 
+    }
+
+    private fun updateSettingsWindowSize() {
+        settingsview!!.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
+        val maxWidth: Int = width - settingsWindowMargin * 2
+        val itemWidth: Int = settingsview!!.measuredWidth
+        val width = Math.min(itemWidth, maxWidth)
+        settingsWindow!!.width = width
+        val maxHeight: Int = height - settingsWindowMargin * 2
+        val totalHeight: Int = settingsview!!.measuredHeight
+        val height = Math.min(maxHeight, totalHeight)
+        settingsWindow!!.height = height
+    }
+
+    private fun displaySettingsWindow(adapter: RecyclerView.Adapter<*>) {
+        settingsview?.adapter = adapter
+        updateSettingsWindowSize()
+        settingsWindow!!.dismiss()
+        val xoff: Int = width - settingsWindow!!.width - settingsWindowMargin
+        val yoff: Int = -settingsWindow!!.height - optionsButton!!.height - settingsWindowMargin
+        settingsWindow!!.showAsDropDown(optionsButton, xoff, yoff)
     }
 
     private fun updateBuffering() {
@@ -214,6 +276,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
         timeBar?.addListener(componentListener)
         playPauseButton?.setOnClickListener(componentListener)
+        optionsButton?.setOnClickListener(componentListener)
     }
 
     private fun updateTimeline() {

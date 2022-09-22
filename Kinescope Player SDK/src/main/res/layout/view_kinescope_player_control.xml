@@ -121,7 +121,7 @@
 
 
         <ImageButton
-            android:id="@id/exo_fullscreen"
+            android:id="@+id/kinescope_fullscreen"
             style="@style/KinescopeMediaButton"
             android:src="@drawable/ic_fullscreen"
             />
