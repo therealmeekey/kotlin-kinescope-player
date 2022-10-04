@@ -30,10 +30,6 @@ class MainActivity : AppCompatActivity() {
 
         videosView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         videosView.adapter = adapter
-        //playerView?.setMediaUrl("https://msk-2-storage.kinescope.io/mp4/ff7c8e12-c59f-4ea0-8f0d-8a04959dfcc3/58bf17d8-c03a-4097-a450-ecde5f8c377a")
-        //player.play()
-
-        //Repository.getVideo("41e3f776-90c1-4ea8-8bf7-e2fe774eaa69")
         Repository.getAll(object : Repository.GetAllVideosCallback {
             override fun onResponse(value: KinescopeAllVideosResponse) {
                 adapter.updateData(value.data)
