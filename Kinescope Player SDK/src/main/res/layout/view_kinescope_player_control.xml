@@ -45,8 +45,8 @@
 
     <ImageView
         android:id="@+id/kinescope_play_pause"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_gravity="center"
         style="@style/ExoStyledControls.Button.Center.PlayPause"/>
 

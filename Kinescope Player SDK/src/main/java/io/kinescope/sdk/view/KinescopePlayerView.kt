@@ -5,10 +5,7 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.PopupWindow
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
@@ -26,6 +23,7 @@ import io.kinescope.sdk.R
 import io.kinescope.sdk.adapter.KinescopeSettingsAdapter
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopePlayer
+import io.kinescope.sdk.utils.animateRotation
 
 class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
     companion object {
@@ -224,6 +222,14 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
                 kinescopePlayer?.exoPlayer != null && kinescopePlayer!!.exoPlayer!!.playbackState == Player.STATE_BUFFERING && (showBuffering == StyledPlayerView.SHOW_BUFFERING_ALWAYS
                         || showBuffering == StyledPlayerView.SHOW_BUFFERING_WHEN_PLAYING && kinescopePlayer!!.exoPlayer!!.playWhenReady)
             bufferingView!!.isVisible = showBufferingSpinner
+
+            val view = bufferingView?.findViewById<ProgressBar>(R.id.kinescope_buffering)
+            if (showBufferingSpinner) {
+                view?.animateRotation()
+            }
+            else {
+                view?.clearAnimation()
+            }
         }
     }
 
