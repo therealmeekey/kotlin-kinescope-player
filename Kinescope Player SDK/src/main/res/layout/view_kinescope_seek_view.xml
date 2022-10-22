@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="false"
+    android:focusable="false"
+    android:weightSum="2"
+    android:orientation="horizontal"
+    >
+    <io.kinescope.sdk.view.CircleAnimationView
+        android:id="@+id/cav_left"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="invisible"
+        />
+    <io.kinescope.sdk.view.CircleAnimationView
+        android:id="@+id/cav_right"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:clickable="false"
+        android:focusable="false"
+        />
+
+
+</LinearLayout>
