@@ -15,11 +15,12 @@
             app:use_controller="false"
             app:animation_enabled="false"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:layout_height="match_parent" />
+
+        <io.kinescope.sdk.view.KinesopeSeekView
+            android:id="@+id/kinescope_seek_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
         <include
             android:id="@+id/view_buffering"

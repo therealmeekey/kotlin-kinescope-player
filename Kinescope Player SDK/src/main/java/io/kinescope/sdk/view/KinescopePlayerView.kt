@@ -3,11 +3,15 @@ package io.kinescope.sdk.view
 import android.content.Context
 import android.os.Looper
 import android.util.AttributeSet
+import android.util.Log
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.*
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,7 +39,41 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         private const val MAX_UPDATE_INTERVAL_MS = 1000
     }
 
+    private val gestureDetector: GestureDetectorCompat
+    private lateinit var gestureListener:KinescopeGestureListener
 
+    private inner class KinescopeGestureListener(private val rootView: View) : GestureDetector.SimpleOnGestureListener() {
+        private fun isForward(event:MotionEvent):Boolean {
+            return event.x > (rootView.width / 2)
+        }
+
+        override fun onDoubleTap(e: MotionEvent?): Boolean {
+            Log.d("KinescopeSDK", "double tap")
+            return super.onDoubleTap(e)
+        }
+
+        override fun onDoubleTapEvent(e: MotionEvent): Boolean {
+            Log.d("KinescopeSDK", "double tap event, isForward=${isForward(e)}")
+            if (isForward(e)) seekView?.showForwardView(e) else seekView?.showBackView(e)
+            return super.onDoubleTapEvent(e)
+        }
+
+        override fun onDown(e: MotionEvent?): Boolean {
+            Log.d("KinescopeSDK", "tap down")
+            return super.onDown(e)
+        }
+
+        override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+            Log.d("KinescopeSDK", "single tap confirmed")
+            toggleControlUI()
+            return false;
+        }
+
+        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+            Log.d("KinescopeSDK", "single tap up")
+            return super.onSingleTapUp(e)
+        }
+    }
 
     private val formatBuilder: StringBuilder = StringBuilder()
     private val formatter = java.util.Formatter(formatBuilder, java.util.Locale.getDefault())
@@ -43,6 +81,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private var kinescopePlayer: KinescopePlayer? = null
     private var exoPlayerView: StyledPlayerView? = null
     private var controlView:FrameLayout? = null
+    private var seekView:KinesopeSeekView? = null
     private var bufferingView:View? = null
     private var positionView:TextView? = null
     private var durationView:TextView? = null
@@ -57,6 +96,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private var settingsWindow: PopupWindow? = null
     private var settingsview: RecyclerView? = null
     private var settingsAdapter: KinescopeSettingsAdapter? = null
+    private var playbackSpeedAdapter: KinescopeSettingsAdapter? = null
     private val settingsWindowMargin = resources.getDimensionPixelSize(com.google.android.exoplayer2.ui.R.dimen.exo_settings_offset)
 
     private var scrubbing = false
@@ -68,6 +108,48 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private val timeBarMinUpdateIntervalMs = DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS
 
     private val updateProgressRunnable = Runnable { updateProgress() }
+
+    private var playbackSpeedOption:String = "normal"
+    private val onPlaybackSpeedOptionsCallback = object: (String) -> Unit {
+        override fun invoke(speed: String) {
+            when (speed) {
+                "normal" -> {
+                    playbackSpeedOption = "normal"
+                    kinescopePlayer?.exoPlayer?.setPlaybackSpeed(1f)
+                }
+                "0.25" -> {
+                    playbackSpeedOption = "0.25"
+                    kinescopePlayer?.exoPlayer?.setPlaybackSpeed(0.25f)
+                }
+                "0.5" -> {
+                    playbackSpeedOption = "0.5"
+                    kinescopePlayer?.exoPlayer?.setPlaybackSpeed(0.5f)
+                }
+                "0.75" -> {
+                    playbackSpeedOption = "0.75"
+                    kinescopePlayer?.exoPlayer?.setPlaybackSpeed(0.75f)
+                }
+                "1.25" -> {
+                    playbackSpeedOption = "1.25"
+                    kinescopePlayer?.exoPlayer?.setPlaybackSpeed(1.25f)
+                }
+                "1.5" -> {
+                    playbackSpeedOption = "1.5"
+                    kinescopePlayer?.exoPlayer?.setPlaybackSpeed(1.5f)
+                }
+                "1.75" -> {
+                    playbackSpeedOption = "1.75"
+                    kinescopePlayer?.exoPlayer?.setPlaybackSpeed(1.75f)
+                }
+                "2" -> {
+                    playbackSpeedOption = "2"
+                    kinescopePlayer?.exoPlayer?.setPlaybackSpeed(2f)
+                }
+            }
+            settingsWindow?.dismiss()
+        }
+
+    }
 
     private val progressUpdateListener =
         StyledPlayerControlView.ProgressUpdateListener {
@@ -129,7 +211,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
             }
             else if (optionsButton === view) {
-                displaySettingsWindow(settingsAdapter!!)
+                displaySettingsWindow(playbackSpeedAdapter!!)
             }
         }
 
@@ -145,7 +227,13 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         bufferingView = findViewById(R.id.view_buffering)
         bufferingView?.isVisible = false
 
+        gestureListener = KinescopeGestureListener(rootView)
+        gestureDetector = GestureDetectorCompat(context, gestureListener)
+
         controlView = findViewById(R.id.view_control)
+
+        seekView = findViewById(R.id.kinescope_seek_view)
+
         timeBar = controlView?.findViewById<KinescopeTimeBar>(R.id.kinescope_progress)
         positionView = controlView?.findViewById(R.id.kinescope_position)
         durationView = controlView?.findViewById(R.id.kinescope_duration)
@@ -156,8 +244,9 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         authorView = controlView?.findViewById(R.id.kinescope_author)
 
         settingsview = LayoutInflater.from(context).inflate(R.layout.view_options_list, null) as RecyclerView?
-        settingsAdapter = KinescopeSettingsAdapter(arrayOf("Playback speed", "Quality"), null)
-        settingsview?.adapter = settingsAdapter
+        settingsAdapter = KinescopeSettingsAdapter(arrayOf("Playback speed", "Quality"), null, null)
+        playbackSpeedAdapter = KinescopeSettingsAdapter(resources.getStringArray(R.array.menu_playback_speed), playbackSpeedOption, onPlaybackSpeedOptionsCallback)
+        settingsview?.adapter = playbackSpeedAdapter
         settingsview?.layoutManager = LinearLayoutManager(this@KinescopePlayerView.context, LinearLayoutManager.VERTICAL, false)
         settingsWindow = PopupWindow(
             settingsview,
@@ -178,6 +267,10 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         kinescopePlayer.exoPlayer?.addListener(componentListener)
         exoPlayerView?.player = kinescopePlayer.exoPlayer
         updateAll()
+    }
+
+    private fun setPlaybackSpeed(speed:Float) {
+        kinescopePlayer?.setPlaybackSpeed(speed)
     }
 
     private fun getVideo():KinescopeVideo? = kinescopePlayer?.getVideo()
@@ -270,15 +363,19 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     }
 
     private fun shouldShowPauseButton(): Boolean {
-        return kinescopePlayer?.exoPlayer != null && kinescopePlayer!!.exoPlayer!!.playbackState != Player.STATE_ENDED && kinescopePlayer!!.exoPlayer!!.playbackState != Player.STATE_IDLE && kinescopePlayer!!.exoPlayer!!.getPlayWhenReady()
+        return kinescopePlayer?.exoPlayer != null && kinescopePlayer!!.exoPlayer!!.playbackState != Player.STATE_ENDED && kinescopePlayer!!.exoPlayer!!.playbackState != Player.STATE_IDLE && kinescopePlayer!!.exoPlayer!!.playWhenReady
+    }
+
+    private fun shouldShowReplayButton(): Boolean {
+        return kinescopePlayer?.exoPlayer != null && kinescopePlayer!!.exoPlayer!!.playbackState == Player.STATE_ENDED
     }
 
     private fun setUIlisteners() {
-        exoPlayerView?.setOnClickListener {
-            controlView?.isVisible = true
-            updateAll()
+        controlView?.isVisible = false
+        this.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
+            return@setOnTouchListener true
         }
-        controlView?.setOnClickListener { controlView?.isVisible = false }
 
         timeBar?.addListener(componentListener)
         playPauseButton?.setOnClickListener(componentListener)
@@ -362,6 +459,11 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
                 MAX_UPDATE_INTERVAL_MS.toLong()
             )
         }
+    }
+
+    private fun toggleControlUI() {
+        controlView!!.isVisible = !controlView!!.isVisible
+        updateAll()
     }
 
     private fun seekToTimeBarPosition(player: Player, positionMs: Long) {

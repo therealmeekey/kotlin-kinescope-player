@@ -10,6 +10,7 @@
     android:background="#CC000000"
     android:orientation="vertical"
     tools:targetApi="28"
+    android:clickable="false"
     >
 
     <LinearLayout
@@ -41,25 +42,12 @@
             />
     </LinearLayout>
 
-
-
     <ImageView
         android:id="@+id/kinescope_play_pause"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_gravity="center"
         style="@style/ExoStyledControls.Button.Center.PlayPause"/>
-
-    <!--<ProgressBar
-        android:id="@+id/kinescope_buffering"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:indeterminate="true"
-        android:indeterminateDrawable="@drawable/ic_buffering"
-        android:visibility="gone"
-        />-->
-
 
 
     <LinearLayout
