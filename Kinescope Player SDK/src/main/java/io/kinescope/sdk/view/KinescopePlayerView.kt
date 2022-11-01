@@ -32,7 +32,23 @@ import io.kinescope.sdk.utils.animateRotation
 class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
     companion object {
         fun switchTargetView(oldPlayerView:KinescopePlayerView, newPlayerView:KinescopePlayerView, player:KinescopePlayer) {
-            //StyledPlayerView.switchTargetView()
+            if (oldPlayerView === newPlayerView) {
+                return
+            }
+            // We attach the new view before detaching the old one because this ordering allows the player
+            // to swap directly from one surface to another, without transitioning through a state where no
+            // surface is attached. This is significantly more efficient and achieves a more seamless
+            // transition when using platform provided video decoders.
+            // We attach the new view before detaching the old one because this ordering allows the player
+            // to swap directly from one surface to another, without transitioning through a state where no
+            // surface is attached. This is significantly more efficient and achieves a more seamless
+            // transition when using platform provided video decoders.
+            if (newPlayerView != null) {
+                newPlayerView.setPlayer(player)
+            }
+            if (oldPlayerView != null) {
+                oldPlayerView.setPlayer(null)
+            }
         }
 
         private const val DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS = 200
@@ -74,6 +90,8 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             return super.onSingleTapUp(e)
         }
     }
+
+    var onFullscreenButtonCallback:(()-> Unit)? = null
 
     private val formatBuilder: StringBuilder = StringBuilder()
     private val formatter = java.util.Formatter(formatBuilder, java.util.Locale.getDefault())
@@ -208,7 +226,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
                 dispatchPlayPause(player)
             }
             else if (fullscreenButton === view) {
-
+                onFullscreenButtonCallback?.invoke()
             }
             else if (optionsButton === view) {
                 displaySettingsWindow(playbackSpeedAdapter!!)
@@ -259,13 +277,13 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         setUIlisteners()
     }
 
-    fun setPlayer(kinescopePlayer: KinescopePlayer) {
+    fun setPlayer(kinescopePlayer: KinescopePlayer?) {
         Assertions.checkState(Looper.myLooper() == Looper.getMainLooper())
         if (this.kinescopePlayer === kinescopePlayer) return
         this.kinescopePlayer?.exoPlayer?.removeListener(componentListener)
         this.kinescopePlayer = kinescopePlayer
-        kinescopePlayer.exoPlayer?.addListener(componentListener)
-        exoPlayerView?.player = kinescopePlayer.exoPlayer
+        kinescopePlayer?.exoPlayer?.addListener(componentListener)
+        exoPlayerView?.player = kinescopePlayer?.exoPlayer
         updateAll()
     }
 
@@ -380,6 +398,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         timeBar?.addListener(componentListener)
         playPauseButton?.setOnClickListener(componentListener)
         optionsButton?.setOnClickListener(componentListener)
+        fullscreenButton?.setOnClickListener(componentListener)
     }
 
     private fun updateTimeline() {

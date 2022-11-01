@@ -7,6 +7,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#000000"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
         <com.google.android.exoplayer2.ui.StyledPlayerView
@@ -14,6 +15,7 @@
             app:show_buffering="never"
             app:use_controller="false"
             app:animation_enabled="false"
+            app:resize_mode="fit"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
