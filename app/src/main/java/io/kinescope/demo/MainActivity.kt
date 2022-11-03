@@ -1,7 +1,12 @@
 package io.kinescope.demo
 
+import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PersistableBundle
+import android.view.View
+import android.view.WindowManager
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.kinescope.sdk.models.common.KinescopeAllVideosResponse
@@ -11,21 +16,32 @@ import io.kinescope.sdk.player.KinescopePlayer
 import io.kinescope.sdk.view.KinescopePlayerView
 
 class MainActivity : AppCompatActivity() {
+    private var isVideoFullscreen = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        kinescopePlayer = KinescopePlayer(this.applicationContext)
     }
+
+    lateinit var playerView:KinescopePlayerView
+    lateinit var fullscreenPlayerView:KinescopePlayerView
+    lateinit var kinescopePlayer:KinescopePlayer
+
+
 
     override fun onStart() {
         super.onStart()
-        val playerView = findViewById<KinescopePlayerView>(R.id.kinescope_player)
+        playerView = findViewById(R.id.kinescope_player)
+        fullscreenPlayerView = findViewById(R.id.v_kinescope_player_fullscreen)
         val videosView = findViewById<RecyclerView>(R.id.rv_videos)
-        val player = KinescopePlayer(this)
-        playerView.setPlayer(player)
+        playerView.setPlayer(kinescopePlayer)
+        playerView.onFullscreenButtonCallback = {toggleFullscreen()}
+        fullscreenPlayerView.onFullscreenButtonCallback = {toggleFullscreen()}
 
         val adapter = VideosAdapter() {
-            player.setVideo(it)
-            player.play()
+            kinescopePlayer.setVideo(it)
+            kinescopePlayer.play()
         }
 
         videosView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
@@ -39,6 +55,58 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
+    }
+
+    private fun setFullscreen(fullscreen: Boolean) {
+        if (fullscreen) {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+
+            KinescopePlayerView.switchTargetView(playerView, fullscreenPlayerView, kinescopePlayer)
+
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
+                        and View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+            } else {
+                window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
+                        and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+            }
+
+            KinescopePlayerView.switchTargetView(fullscreenPlayerView, playerView, kinescopePlayer)
+        }
+    }
+
+    private fun toggleFullscreen() {
+        if (isVideoFullscreen) {
+            setFullscreen(false)
+            if (supportActionBar != null) {
+                supportActionBar?.show()
+            }
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            isVideoFullscreen = false
+        } else {
+            setFullscreen(true)
+            if (supportActionBar != null) {
+                supportActionBar?.hide()
+            }
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            isVideoFullscreen = true
+        }
+        fullscreenPlayerView.isVisible = isVideoFullscreen
+    }
+
+    override fun onBackPressed() {
+        if (isVideoFullscreen) {
+            toggleFullscreen()
+            return
+        }
+        super.onBackPressed()
     }
 
 
