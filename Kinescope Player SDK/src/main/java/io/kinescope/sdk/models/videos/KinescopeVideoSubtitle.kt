@@ -4,7 +4,7 @@ import java.io.Serializable
 
 data class KinescopeVideoSubtitle (
         val id: String,
-        val descriptionval : String,
-        val languageval : String,
-        val urlval : String,
+        val description : String,
+        val language : String,
+        val url : String,
         ):Serializable
