@@ -1,9 +1,12 @@
 package io.kinescope.sdk.view
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Looper
 import android.util.AttributeSet
 import android.util.Log
+import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -18,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Timeline
+import com.google.android.exoplayer2.ui.CaptionStyleCompat
 import com.google.android.exoplayer2.ui.StyledPlayerControlView
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.ui.TimeBar
@@ -274,6 +278,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         )
         settingsWindow?.setOnDismissListener(componentListener)
 
+        setSubtitlesStyling()
         setUIlisteners()
     }
 
@@ -325,6 +330,20 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         val xoff: Int = width - settingsWindow!!.width - settingsWindowMargin
         val yoff: Int = -settingsWindow!!.height - optionsButton!!.height - settingsWindowMargin
         settingsWindow!!.showAsDropDown(optionsButton, xoff, yoff)
+
+        //val popup = PopupMenu(context, optionsButton)
+        /*val popup = CascadePopupMenu(context, optionsButton!!)
+        //popup.popup.setBackgroundDrawable(context.getDrawable(R.drawable.bg_options_rect))
+        popup.menu.addSubMenu("Video quality")
+            .setIcon(R.drawable.ic_option_quality)
+            .also {
+            sub ->
+            sub.add("1080p")
+            sub.add("720p")
+            sub.add("480p")
+        }
+        //popup.inflate(R.menu.options_menu)
+        popup.show()*/
     }
 
     private fun updateBuffering() {
@@ -536,5 +555,20 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
     private fun dispatchPause(player: Player) {
         player.pause()
+    }
+
+    private fun  setSubtitlesStyling() {
+        exoPlayerView?.subtitleView?.setStyle(
+            CaptionStyleCompat(
+                Color.WHITE,
+                Color.BLACK,
+                Color.TRANSPARENT,
+                CaptionStyleCompat.EDGE_TYPE_NONE,
+                Color.WHITE,
+                Typeface.SERIF
+            )
+        )
+        //exoPlayerView?.subtitleView?.setFixedTextSize(TypedValue .COMPLEX_UNIT_SP, 24f)
+        exoPlayerView?.subtitleView?.setBottomPaddingFraction(96f)
     }
 }
