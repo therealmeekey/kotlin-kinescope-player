@@ -17,7 +17,7 @@ class KinescopePlayer(context:Context) {
     var exoPlayer: ExoPlayer? = null
     private var video:KinescopeVideo? = null
 
-    private var kinescopePlayerOptions = KinescopePlayerOptions()
+    var kinescopePlayerOptions = KinescopePlayerOptions()
 
     init {
         exoPlayer = ExoPlayer.Builder(context)
@@ -42,7 +42,7 @@ class KinescopePlayer(context:Context) {
     fun setVideo(kinescopeVideo: KinescopeVideo) {
         val video: MediaItem
 
-        if (kinescopeVideo.subtitles.isNotEmpty()) {
+        if (getShowSubtitles() && kinescopeVideo.subtitles.isNotEmpty()) {
             val subtitle:MediaItem.SubtitleConfiguration = MediaItem.SubtitleConfiguration.Builder(Uri.parse(kinescopeVideo.subtitles.first().url))
                 .setMimeType(MimeTypes.TEXT_VTT)
                 .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
@@ -98,5 +98,13 @@ class KinescopePlayer(context:Context) {
     fun setPlaybackSpeed(speed:Float) {
         exoPlayer?.setPlaybackSpeed(speed)
         KinescopeLogger.log("Playback speed changed to $speed")
+    }
+
+    fun setShowSubtitles(value: Boolean) {
+        kinescopePlayerOptions.showSubtitles = value
+    }
+
+    fun getShowSubtitles():Boolean {
+        return kinescopePlayerOptions.showSubtitles
     }
 }
