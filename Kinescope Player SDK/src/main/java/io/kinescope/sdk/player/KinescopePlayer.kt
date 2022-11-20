@@ -15,7 +15,7 @@ import io.kinescope.sdk.models.videos.KinescopeVideo
 class KinescopePlayer(context:Context) {
 
     var exoPlayer: ExoPlayer? = null
-    private var video:KinescopeVideo? = null
+    private var currentKinescopeVideo:KinescopeVideo? = null
 
     var kinescopePlayerOptions = KinescopePlayerOptions()
 
@@ -31,13 +31,13 @@ class KinescopePlayer(context:Context) {
         setMediaUrl(video.assets.first().url)
     }*/
 
-    fun getVideo():KinescopeVideo? = video
+    fun getVideo():KinescopeVideo? = currentKinescopeVideo
 
-    private fun setMediaUrl(url:String) {
+    /*private fun setMediaUrl(url:String) {
         exoPlayer?.setMediaItem(MediaItem.fromUri(url))
         exoPlayer?.playWhenReady = false
         exoPlayer?.prepare()
-    }
+    }*/
 
     fun setVideo(kinescopeVideo: KinescopeVideo) {
         val video: MediaItem
@@ -58,7 +58,7 @@ class KinescopePlayer(context:Context) {
         else {
             video = MediaItem.fromUri(Uri.parse(kinescopeVideo.assets.first().url))
         }
-
+        currentKinescopeVideo = kinescopeVideo
         exoPlayer?.setMediaItem(video)
         exoPlayer?.playWhenReady = false
         exoPlayer?.prepare()
@@ -81,7 +81,8 @@ class KinescopePlayer(context:Context) {
     }
 
     fun seekTo(toMilliSeconds:Long) {
-        exoPlayer?.seekTo(toMilliSeconds)
+        exoPlayer?.seekTo(exoPlayer!!.contentPosition + toMilliSeconds)
+
         KinescopeLogger.log("seek to ${toMilliSeconds / 1000} seconds" )
     }
 
@@ -104,7 +105,15 @@ class KinescopePlayer(context:Context) {
         kinescopePlayerOptions.showSubtitles = value
     }
 
+    fun setShowOptions(value:Boolean) {
+        kinescopePlayerOptions.showOptions = value
+    }
+
     fun getShowSubtitles():Boolean {
         return kinescopePlayerOptions.showSubtitles
+    }
+
+    fun setShowFullscreen(value: Boolean) {
+        kinescopePlayerOptions.showFullscreenButton = value
     }
 }

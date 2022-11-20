@@ -97,6 +97,8 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
     var onFullscreenButtonCallback:(()-> Unit)? = null
 
+    private var customControlsLayoutId:Int = 0
+
     private val formatBuilder: StringBuilder = StringBuilder()
     private val formatter = java.util.Formatter(formatBuilder, java.util.Locale.getDefault())
 
@@ -112,6 +114,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private var optionsButton: View? = null
     private var fullscreenButton: View? = null
     private var subtitlesButton: View? = null
+    private var attachmentsButton: View? = null
 
     private var titleView:TextView? = null
     private var authorView:TextView? = null
@@ -239,6 +242,9 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             else if (subtitlesButton === view) {
                 //TODO: Subtitles menu
             }
+            else if (attachmentsButton === view) {
+
+            }
         }
 
         override fun onDismiss() {
@@ -267,6 +273,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         optionsButton = controlView?.findViewById(R.id.kinescope_settings)
         fullscreenButton = controlView?.findViewById(R.id.kinescope_fullscreen)
         subtitlesButton = controlView?.findViewById(R.id.kinescope_btn_subtitles)
+        attachmentsButton = controlView?.findViewById(R.id.kinescope_btn_attachments)
         titleView = controlView?.findViewById(R.id.kinescope_title)
         authorView = controlView?.findViewById(R.id.kinescope_author)
 
@@ -283,9 +290,19 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         )
         settingsWindow?.setOnDismissListener(componentListener)
 
+        applyKinescopePlayerOptions()
         setSubtitlesStyling()
         setUIlisteners()
     }
+
+    /*private fun initializeControlsUi() {
+        if (customControlsLayoutId == 0) {
+            inflate(context, R.layout.view_kinesope_player, this)
+        }
+        else {
+            inflate(context, customControlsLayoutId, this)
+        }
+    }*/
 
     fun setPlayer(kinescopePlayer: KinescopePlayer?) {
         Assertions.checkState(Looper.myLooper() == Looper.getMainLooper())
@@ -294,12 +311,13 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         this.kinescopePlayer = kinescopePlayer
         kinescopePlayer?.exoPlayer?.addListener(componentListener)
         exoPlayerView?.player = kinescopePlayer?.exoPlayer
+        applyKinescopePlayerOptions()
         updateAll()
     }
 
-    private fun setPlaybackSpeed(speed:Float) {
+    /*private fun setPlaybackSpeed(speed:Float) {
         kinescopePlayer?.setPlaybackSpeed(speed)
-    }
+    }*/
 
     private fun getVideo():KinescopeVideo? = kinescopePlayer?.getVideo()
 
@@ -313,7 +331,12 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     }
 
     fun setCustomControllerLayoutID(value:Int) {
-
+        customControlsLayoutId = value
+    }
+    private var isVideoFullscreen = false
+    fun setIsFullscreen(value:Boolean) {
+        isVideoFullscreen = value
+        updateFullscreenButton()
     }
 
     private fun updateSettingsWindowSize() {
@@ -384,8 +407,9 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         if (options!= null) {
             fullscreenButton?.isVisible = options.showFullscreenButton
             seekView?.isVisible = options.showSeekBar
-
-
+            subtitlesButton?.isVisible = options.showSubtitles
+            attachmentsButton?.isVisible = options.showAttachments
+            optionsButton?.isVisible = options.showOptions
         }
     }
 
@@ -410,6 +434,18 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
                     /*.setImageDrawable(resources.getDrawable(com.google.android.exoplayer2.ui.R.drawable.exo_styled_controls_play))*/
                     .setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.kinescope_controls_play))
                 //playPauseButton?.contentDescription = resources.getString(com.google.android.exoplayer2.ui.R.string.exo_controls_play_description)
+            }
+        }
+    }
+
+    private fun updateFullscreenButton() {
+        if (fullscreenButton != null) {
+            if (isVideoFullscreen) {
+                (fullscreenButton as ImageView)
+                    .setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_fullscreen_disable ))
+            } else {
+                (fullscreenButton as ImageView)
+                    .setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_fullscreen))
             }
         }
     }
@@ -572,6 +608,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private fun dispatchPause(player: Player) {
         player.pause()
     }
+
 
     private fun  setSubtitlesStyling() {
         exoPlayerView?.subtitleView?.setStyle(
