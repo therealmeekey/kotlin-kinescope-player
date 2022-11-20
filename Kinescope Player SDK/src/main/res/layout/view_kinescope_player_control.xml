@@ -107,6 +107,17 @@
             />
 
 
+        <ImageButton
+            android:id="@+id/kinescope_btn_attachments"
+            style="@style/KinescopeMediaButton"
+            android:src="@drawable/ic_attachments"
+            />
+
+        <ImageButton
+            android:id="@+id/kinescope_btn_subtitles"
+            style="@style/KinescopeMediaButton"
+            android:src="@drawable/ic_subtitles"
+            />
 
         <ImageButton
             android:id="@+id/kinescope_fullscreen"

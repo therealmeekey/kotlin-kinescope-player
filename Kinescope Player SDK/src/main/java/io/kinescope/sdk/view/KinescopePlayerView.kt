@@ -111,6 +111,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private var playPauseButton: View? = null
     private var optionsButton: View? = null
     private var fullscreenButton: View? = null
+    private var subtitlesButton: View? = null
 
     private var titleView:TextView? = null
     private var authorView:TextView? = null
@@ -235,6 +236,9 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             else if (optionsButton === view) {
                 displaySettingsWindow(playbackSpeedAdapter!!)
             }
+            else if (subtitlesButton === view) {
+                //TODO: Subtitles menu
+            }
         }
 
         override fun onDismiss() {
@@ -262,6 +266,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         playPauseButton = controlView?.findViewById(R.id.kinescope_play_pause)
         optionsButton = controlView?.findViewById(R.id.kinescope_settings)
         fullscreenButton = controlView?.findViewById(R.id.kinescope_fullscreen)
+        subtitlesButton = controlView?.findViewById(R.id.kinescope_btn_subtitles)
         titleView = controlView?.findViewById(R.id.kinescope_title)
         authorView = controlView?.findViewById(R.id.kinescope_author)
 
@@ -374,6 +379,16 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         updateTitles()
     }
 
+    private fun applyKinescopePlayerOptions() {
+        val options = kinescopePlayer?.kinescopePlayerOptions
+        if (options!= null) {
+            fullscreenButton?.isVisible = options.showFullscreenButton
+            seekView?.isVisible = options.showSeekBar
+
+
+        }
+    }
+
     private fun updateTitles() {
         if (getVideo() == null) return
         titleView?.text = getVideo()!!.title
@@ -418,6 +433,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         playPauseButton?.setOnClickListener(componentListener)
         optionsButton?.setOnClickListener(componentListener)
         fullscreenButton?.setOnClickListener(componentListener)
+        subtitlesButton?.setOnClickListener(componentListener)
     }
 
     private fun updateTimeline() {

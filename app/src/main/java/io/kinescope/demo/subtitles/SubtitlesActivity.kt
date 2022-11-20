@@ -35,6 +35,7 @@ class SubtitlesActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         playerView = findViewById(R.id.kinescope_player)
+        kinescopePlayer.setShowSubtitles(true)
         fullscreenPlayerView = findViewById(R.id.v_kinescope_player_fullscreen)
         val videosView = findViewById<RecyclerView>(R.id.rv_videos)
         playerView.setPlayer(kinescopePlayer)
