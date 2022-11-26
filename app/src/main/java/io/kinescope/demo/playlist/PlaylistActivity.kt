@@ -22,7 +22,7 @@ class PlaylistActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_playlist)
         kinescopePlayer = KinescopePlayer(this.applicationContext)
     }
 
@@ -36,6 +36,8 @@ class PlaylistActivity : AppCompatActivity() {
         super.onStart()
         playerView = findViewById(R.id.kinescope_player)
         fullscreenPlayerView = findViewById(R.id.v_kinescope_player_fullscreen)
+        playerView.setIsFullscreen(false)
+        fullscreenPlayerView.setIsFullscreen(true)
         val videosView = findViewById<RecyclerView>(R.id.rv_videos)
         playerView.setPlayer(kinescopePlayer)
         playerView.onFullscreenButtonCallback = {toggleFullscreen()}

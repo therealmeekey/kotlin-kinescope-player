@@ -1,44 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    android:gravity="center"
+    android:layout_gravity="center"
+    tools:context=".MainActivity"
+    >
 
-
-    <io.kinescope.sdk.view.KinescopePlayerView
-        android:id="@+id/kinescope_player"
-        android:layout_width="match_parent"
-        android:layout_height="260dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_playlist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:textColor="@color/white"
+        android:text="Playlist test"
+        android:textSize="24sp"
         />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_videos"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        tools:listitem="@layout/item_video"
-        tools:itemCount="5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/kinescope_player"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_subtitles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:textColor="@color/white"
+        android:text="Subtitles test"
+        android:textSize="24sp"
+        android:layout_marginTop="32dp"
         />
 
-    <io.kinescope.sdk.view.KinescopePlayerView
-        android:id="@+id/v_kinescope_player_fullscreen"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:visibility="gone"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_fullscreen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:textColor="@color/white"
+        android:text="Fullscreen test"
+        android:textSize="24sp"
+        android:layout_marginTop="32dp"
         />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_custom_ui"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:textColor="@color/white"
+        android:text="Custom UI test"
+        android:textSize="24sp"
+        android:layout_marginTop="32dp"
+        />
+
+
+</LinearLayout>

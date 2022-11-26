@@ -22,7 +22,7 @@ class SubtitlesActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_subtitles)
         kinescopePlayer = KinescopePlayer(this.applicationContext)
     }
 
@@ -37,18 +37,11 @@ class SubtitlesActivity : AppCompatActivity() {
         playerView = findViewById(R.id.kinescope_player)
         kinescopePlayer.setShowSubtitles(true)
         fullscreenPlayerView = findViewById(R.id.v_kinescope_player_fullscreen)
-        val videosView = findViewById<RecyclerView>(R.id.rv_videos)
+        playerView.setIsFullscreen(false)
+        fullscreenPlayerView.setIsFullscreen(true)
         playerView.setPlayer(kinescopePlayer)
         playerView.onFullscreenButtonCallback = {toggleFullscreen()}
         fullscreenPlayerView.onFullscreenButtonCallback = {toggleFullscreen()}
-
-        val adapter = VideosAdapter() {
-            kinescopePlayer.setVideo(it)
-            kinescopePlayer.play()
-        }
-
-        videosView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        videosView.adapter = adapter
         Repository.getVideo("a7c69588-2473-4067-a9cc-250392f5e89e", object : Repository.GetVideoCallback {
             override fun onResponse(value: KinescopeVideo) {
                 kinescopePlayer.setVideo(value)
