@@ -9,7 +9,10 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import io.kinescope.sdk.R
 
-class KinescopeSettingsAdapter(private val options:Array<String>, private var activeOption:String?, private val callback:((String) -> Unit)?) : RecyclerView.Adapter<KinescopeSettingsAdapter.ViewHolder>() {
+class KinescopeSettingsAdapter(
+    private val options:Array<String>,
+    private var activeOption:String?,
+    private val callback:((String) -> Unit)?) : RecyclerView.Adapter<KinescopeSettingsAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): KinescopeSettingsAdapter.ViewHolder {
         return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_option, parent, false))
     }

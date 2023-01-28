@@ -32,7 +32,7 @@
         android:layout_marginTop="32dp"
         />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <!--<androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_fullscreen"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
         android:text="Fullscreen test"
         android:textSize="24sp"
         android:layout_marginTop="32dp"
-        />
+        />-->
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_custom_ui"

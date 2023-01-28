@@ -6,16 +6,14 @@ import android.graphics.Typeface
 import android.os.Looper
 import android.util.AttributeSet
 import android.util.Log
-import android.util.TypedValue
-import android.view.GestureDetector
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.widget.*
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
+import androidx.core.view.marginEnd
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.C
@@ -32,6 +30,8 @@ import io.kinescope.sdk.adapter.KinescopeSettingsAdapter
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopePlayer
 import io.kinescope.sdk.utils.animateRotation
+import me.saket.cascade.CascadePopupMenu
+
 
 class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
     companion object {
@@ -351,27 +351,85 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         settingsWindow!!.height = height
     }
 
-    private fun displaySettingsWindow(adapter: RecyclerView.Adapter<*>) {
-        settingsview?.adapter = adapter
+    private fun displaySettingsWindow(settingsAdapter: RecyclerView.Adapter<*>) {
+        settingsview?.adapter = settingsAdapter
         updateSettingsWindowSize()
-        settingsWindow!!.dismiss()
+        //settingsWindow!!.dismiss()
         val xoff: Int = width - settingsWindow!!.width - settingsWindowMargin
         val yoff: Int = -settingsWindow!!.height - optionsButton!!.height - settingsWindowMargin
-        settingsWindow!!.showAsDropDown(optionsButton, xoff, yoff)
+        //settingsWindow!!.showAsDropDown(optionsButton, xoff, yoff)
 
-        //val popup = PopupMenu(context, optionsButton)
-        /*val popup = CascadePopupMenu(context, optionsButton!!)
+        //CascadePopupMenu(context, optionsButton!!)
+
+
+        val popup = CascadePopupMenu(
+            context = context,
+            anchor = optionsButton!!,
+            styler = CascadePopupMenu.Styler(
+              background = {AppCompatResources.getDrawable(context, R.drawable.bg_options_rect)},
+                menuItem = {
+                    it.titleView.setTextColor(Color.parseColor("#ffffff"))
+                    it.subMenuArrowView.updatePadding(right = 56)
+                },
+                menuTitle = {
+                    it.titleView.setTextColor(Color.parseColor("#ffffff"))
+                    it.titleView.compoundDrawablePadding = 48
+                    it.titleView.updatePadding(left = 36)
+                },
+            ),
+            gravity = Gravity.TOP
+        )
+
         //popup.popup.setBackgroundDrawable(context.getDrawable(R.drawable.bg_options_rect))
         popup.menu.addSubMenu("Video quality")
             .setIcon(R.drawable.ic_option_quality)
             .also {
             sub ->
-            sub.add("1080p")
-            sub.add("720p")
-            sub.add("480p")
+                sub.add("480p")
+                sub.add("720p")
+                sub.add("1080p")
+
+
         }
-        //popup.inflate(R.menu.options_menu)
-        popup.show()*/
+        popup.menu.addSubMenu("Playback speed")
+            .setIcon(R.drawable.ic_option_playback_speed)
+            .also {
+                    sub ->
+                sub.add("0.5")
+                sub.add("0.75")
+                sub.add("Normal")
+                sub.add("1.25")
+                sub.add("1.5")
+                sub.add("1.75")
+                sub.add("2")
+            }
+        popup.show()
+
+        //
+
+
+        /*val cascadePopupWindow = CascadePopupWindow(context)
+        val sharedViewPool = RecyclerView.RecycledViewPool()
+        val menuList = RecyclerView(context).apply {
+            background = AppCompatResources.getDrawable(context, R.drawable.bg_options_rect)
+            layoutManager = LinearLayoutManager(context).also {
+                it.recycleChildrenOnDetach = true
+                setRecycledViewPool(sharedViewPool)
+            }
+            isVerticalScrollBarEnabled = true
+            scrollBarStyle = SCROLLBARS_INSIDE_OVERLAY
+
+            //addOnScrollListener(OverScrollIfContentScrolls())
+            adapter = settingsAdapter
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        cascadePopupWindow.contentView.show(menuList, false)
+
+        cascadePopupWindow.show(optionsButton!!, xoff, yoff, Gravity.BOTTOM)*/
     }
 
     private fun updateBuffering() {

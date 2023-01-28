@@ -14,15 +14,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val btnFullscreen = findViewById<AppCompatButton>(R.id.btn_fullscreen)
+        //val btnFullscreen = findViewById<AppCompatButton>(R.id.btn_fullscreen)
         val btnSubtitles = findViewById<AppCompatButton>(R.id.btn_subtitles)
         val btnCustomUI = findViewById<AppCompatButton>(R.id.btn_custom_ui)
         val btnPlaylist = findViewById<AppCompatButton>(R.id.btn_playlist)
 
-        btnFullscreen.setOnClickListener {
+        /*btnFullscreen.setOnClickListener {
             val intent =  Intent(this, FullscreenActivity::class.java)
             startActivity(intent);
-        }
+        }*/
 
         btnSubtitles.setOnClickListener {
             val intent =  Intent(this, SubtitlesActivity::class.java)
