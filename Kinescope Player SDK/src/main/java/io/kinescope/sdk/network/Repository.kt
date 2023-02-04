@@ -2,9 +2,7 @@ package io.kinescope.sdk.network
 
 import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.models.common.KinescopeAllVideosResponse
-import io.kinescope.sdk.models.common.KinescopeMetaResponse
 import io.kinescope.sdk.models.common.KinescopeResponse
-import io.kinescope.sdk.models.pagination.KinescopeMetaData
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import retrofit2.Call
 import retrofit2.Callback
@@ -12,7 +10,7 @@ import retrofit2.Response
 
 object Repository {
     fun getVideo(value: String, callback: GetVideoCallback) {
-        NetworkModule.getVideoApi().getVideo(value).enqueue(object : Callback<KinescopeResponse<KinescopeVideo>> {
+        RetrofitBuilder.getVideoApi().getVideo(value).enqueue(object : Callback<KinescopeResponse<KinescopeVideo>> {
             override fun onResponse(
                 call: Call<KinescopeResponse<KinescopeVideo>>,
                 response: Response<KinescopeResponse<KinescopeVideo>>
@@ -30,7 +28,7 @@ object Repository {
     }
 
     fun getAll(callback: GetAllVideosCallback) {
-        NetworkModule.getVideoApi().getAll().enqueue(object : Callback<KinescopeAllVideosResponse> {
+        RetrofitBuilder.getVideoApi().getAll().enqueue(object : Callback<KinescopeAllVideosResponse> {
             override fun onResponse(
                 call: Call<KinescopeAllVideosResponse>,
                 response: Response<KinescopeAllVideosResponse>
