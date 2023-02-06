@@ -1,19 +1,10 @@
 package io.kinescope.demo.customui
 
 import io.kinescope.demo.R
-import io.kinescope.demo.VideosAdapter
-import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.View
-import android.view.WindowManager
-import androidx.core.view.isVisible
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import io.kinescope.sdk.models.common.KinescopeAllVideosResponse
 import io.kinescope.sdk.models.videos.KinescopeVideo
-import io.kinescope.sdk.network.NetworkModule
 import io.kinescope.sdk.network.Repository
 import io.kinescope.sdk.player.KinescopePlayer
 import io.kinescope.sdk.view.KinescopePlayerView

@@ -5,19 +5,22 @@ import io.kinescope.demo.VideosAdapter
 import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.View
 import android.view.WindowManager
+import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.kinescope.sdk.models.common.KinescopeAllVideosResponse
-import io.kinescope.sdk.network.NetworkModule
-import io.kinescope.sdk.network.Repository
+import io.kinescope.demo.application.KinescopeSDKDemoApplication
 import io.kinescope.sdk.player.KinescopePlayer
 import io.kinescope.sdk.view.KinescopePlayerView
 
 class PlaylistActivity : AppCompatActivity() {
+    private val viewModel: PlaylistViewModel by viewModels  {
+        PlaylistViewModel.Factory((application as KinescopeSDKDemoApplication).apiHelper)
+    }
+
+
     private var isVideoFullscreen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +53,11 @@ class PlaylistActivity : AppCompatActivity() {
 
         videosView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         videosView.adapter = adapter
-        Repository.getAll(object : Repository.GetAllVideosCallback {
+
+        viewModel.allVideos.observe(this) {
+            adapter.updateData(it)
+        }
+        /*Repository.getAll(object : Repository.GetAllVideosCallback {
             override fun onResponse(value: KinescopeAllVideosResponse) {
                 adapter.updateData(value.data)
             }
@@ -58,7 +65,7 @@ class PlaylistActivity : AppCompatActivity() {
             override fun onFailure() {
 
             }
-        })
+        })*/
     }
 
     private fun setFullscreen(fullscreen: Boolean) {

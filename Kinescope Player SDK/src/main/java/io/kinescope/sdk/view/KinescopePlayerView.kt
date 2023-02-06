@@ -67,7 +67,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             return event.x > (rootView.width / 2)
         }
 
-        override fun onDoubleTap(e: MotionEvent?): Boolean {
+        override fun onDoubleTap(e: MotionEvent): Boolean {
             Log.d("KinescopeSDK", "double tap")
             return super.onDoubleTap(e)
         }
@@ -78,18 +78,18 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             return super.onDoubleTapEvent(e)
         }
 
-        override fun onDown(e: MotionEvent?): Boolean {
+        override fun onDown(e: MotionEvent): Boolean {
             Log.d("KinescopeSDK", "tap down")
             return super.onDown(e)
         }
 
-        override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
             Log.d("KinescopeSDK", "single tap confirmed")
             toggleControlUI()
             return false;
         }
 
-        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
             Log.d("KinescopeSDK", "single tap up")
             return super.onSingleTapUp(e)
         }

@@ -163,17 +163,17 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
                 }
 
                 addListener(object : Animator.AnimatorListener {
-                    override fun onAnimationStart(animation: Animator?) {
+                    override fun onAnimationStart(animation: Animator) {
                         visibility = VISIBLE
                     }
 
-                    override fun onAnimationEnd(animation: Animator?) {
+                    override fun onAnimationEnd(animation: Animator) {
                         if (!forceReset) performAtEnd()
                         //
                     }
 
-                    override fun onAnimationRepeat(animation: Animator?) {}
-                    override fun onAnimationCancel(animation: Animator?) {}
+                    override fun onAnimationRepeat(animation: Animator) {}
+                    override fun onAnimationCancel(animation: Animator) {}
                 })
             }
         }
