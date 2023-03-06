@@ -12,7 +12,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
-import androidx.core.view.marginEnd
+import androidx.core.view.setPadding
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,26 +27,25 @@ import com.google.android.exoplayer2.util.Assertions
 import com.google.android.exoplayer2.util.Util
 import io.kinescope.sdk.R
 import io.kinescope.sdk.adapter.KinescopeSettingsAdapter
+import io.kinescope.sdk.logger.KinescopeLogger
+import io.kinescope.sdk.logger.KinescopeLogger.log
+import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
-import io.kinescope.sdk.player.KinescopePlayer
+import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.utils.animateRotation
 import me.saket.cascade.CascadePopupMenu
 
 
 class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
     companion object {
-        fun switchTargetView(oldPlayerView:KinescopePlayerView, newPlayerView:KinescopePlayerView, player:KinescopePlayer) {
+        /**
+         * Detaches player from current PlayerView and attaches to the new one
+         *
+         */
+        fun switchTargetView(oldPlayerView:KinescopePlayerView, newPlayerView:KinescopePlayerView, player:KinescopeVideoPlayer) {
             if (oldPlayerView === newPlayerView) {
                 return
             }
-            // We attach the new view before detaching the old one because this ordering allows the player
-            // to swap directly from one surface to another, without transitioning through a state where no
-            // surface is attached. This is significantly more efficient and achieves a more seamless
-            // transition when using platform provided video decoders.
-            // We attach the new view before detaching the old one because this ordering allows the player
-            // to swap directly from one surface to another, without transitioning through a state where no
-            // surface is attached. This is significantly more efficient and achieves a more seamless
-            // transition when using platform provided video decoders.
             if (newPlayerView != null) {
                 newPlayerView.setPlayer(player)
             }
@@ -60,7 +59,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     }
 
     private val gestureDetector: GestureDetectorCompat
-    private lateinit var gestureListener:KinescopeGestureListener
+    private var gestureListener:KinescopeGestureListener
 
     private inner class KinescopeGestureListener(private val rootView: View) : GestureDetector.SimpleOnGestureListener() {
         private fun isForward(event:MotionEvent):Boolean {
@@ -68,29 +67,29 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         }
 
         override fun onDoubleTap(e: MotionEvent): Boolean {
-            Log.d("KinescopeSDK", "double tap")
+            KinescopeLogger.log(KinescopeLoggerLevel.PLAYER_VIEW, "double tap")
             return super.onDoubleTap(e)
         }
 
         override fun onDoubleTapEvent(e: MotionEvent): Boolean {
-            Log.d("KinescopeSDK", "double tap event, isForward=${isForward(e)}")
+            KinescopeLogger.log(KinescopeLoggerLevel.PLAYER_VIEW, "double tap event, isForward=${isForward(e)}")
             if (isForward(e)) seekView?.showForwardView(e) else seekView?.showBackView(e)
             return super.onDoubleTapEvent(e)
         }
 
         override fun onDown(e: MotionEvent): Boolean {
-            Log.d("KinescopeSDK", "tap down")
+            KinescopeLogger.log(KinescopeLoggerLevel.PLAYER_VIEW, "tap down")
             return super.onDown(e)
         }
 
         override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-            Log.d("KinescopeSDK", "single tap confirmed")
+            KinescopeLogger.log(KinescopeLoggerLevel.PLAYER_VIEW, "single tap confirmed")
             toggleControlUI()
             return false;
         }
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
-            Log.d("KinescopeSDK", "single tap up")
+            KinescopeLogger.log(KinescopeLoggerLevel.PLAYER_VIEW, "single tap up")
             return super.onSingleTapUp(e)
         }
     }
@@ -102,7 +101,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private val formatBuilder: StringBuilder = StringBuilder()
     private val formatter = java.util.Formatter(formatBuilder, java.util.Locale.getDefault())
 
-    private var kinescopePlayer: KinescopePlayer? = null
+    private var kinescopePlayer: KinescopeVideoPlayer? = null
     private var exoPlayerView: StyledPlayerView? = null
     private var controlView:FrameLayout? = null
     private var seekView:KinesopeSeekView? = null
@@ -304,7 +303,12 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         }
     }*/
 
-    fun setPlayer(kinescopePlayer: KinescopePlayer?) {
+    /**
+     * Attaches Kinescope player and loads KinescopePlayerOptions
+     * to this KinescopePlayerView
+     *
+     */
+    fun setPlayer(kinescopePlayer: KinescopeVideoPlayer?) {
         Assertions.checkState(Looper.myLooper() == Looper.getMainLooper())
         if (this.kinescopePlayer === kinescopePlayer) return
         this.kinescopePlayer?.exoPlayer?.removeListener(componentListener)
@@ -318,6 +322,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     /*private fun setPlaybackSpeed(speed:Float) {
         kinescopePlayer?.setPlaybackSpeed(speed)
     }*/
+
 
     private fun getVideo():KinescopeVideo? = kinescopePlayer?.getVideo()
 
@@ -333,6 +338,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     fun setCustomControllerLayoutID(value:Int) {
         customControlsLayoutId = value
     }
+
     private var isVideoFullscreen = false
     fun setIsFullscreen(value:Boolean) {
         isVideoFullscreen = value
@@ -465,9 +471,9 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         if (options!= null) {
             fullscreenButton?.isVisible = options.showFullscreenButton
             seekView?.isVisible = options.showSeekBar
-            subtitlesButton?.isVisible = options.showSubtitles
+            subtitlesButton?.isVisible = options.showSubtitlesButton
             attachmentsButton?.isVisible = options.showAttachments
-            optionsButton?.isVisible = options.showOptions
+            optionsButton?.isVisible = options.showOptionsButton
         }
     }
 

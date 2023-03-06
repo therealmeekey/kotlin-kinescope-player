@@ -2,14 +2,9 @@ package io.kinescope.sdk.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
-import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.View
 import android.widget.FrameLayout
-import androidx.core.view.GestureDetectorCompat
 import io.kinescope.sdk.R
-import io.kinescope.sdk.player.KinescopePlayer
 
 class KinesopeSeekView (
                         context: Context,
