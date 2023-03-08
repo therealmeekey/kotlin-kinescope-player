@@ -19,5 +19,8 @@ interface KinescopeVideoApi {
 
 interface KinescopeApi {
     @GET("v1/videos/")
-    suspend fun getAllVideosList():KinescopeAllVideosResponse
+    suspend fun getAllVideos():KinescopeAllVideosResponse
+
+    @GET("v1/videos/{video_id}")
+    fun getVideo(@Path("video_id") videoId:String):KinescopeResponse<KinescopeVideo>
 }

@@ -8,6 +8,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+/*
 object Repository {
     fun getVideo(value: String, callback: GetVideoCallback) {
         RetrofitBuilder.getVideoApi().getVideo(value).enqueue(object : Callback<KinescopeResponse<KinescopeVideo>> {
@@ -57,4 +58,4 @@ object Repository {
 
 
 
-}
+}*/

@@ -2,10 +2,15 @@ package io.kinescope.sdk.logger
 
 import android.util.Log
 
-object KinescopeLogger {
-    private val tag:String = "KinescopeSDK"
+enum class KinescopeLoggerLevel(val value:String) {
+    NETWORK("KinescopeSDKNetwork"),
+    PLAYER("KinescopeSDKPlayer"),
+    PLAYER_VIEW("KinescopeSDKPlayerView"),
+}
 
-    fun log(message: String) {
-        Log.d(tag, message)
+object KinescopeLogger {
+
+    fun log(level:KinescopeLoggerLevel, message: String) {
+        Log.d(level.value, message)
     }
 }

@@ -47,6 +47,6 @@ object RetrofitBuilder {
         .build()
 
 
-    fun getVideoApi() : KinescopeVideoApi = getRetrofit().create(KinescopeVideoApi::class.java)
+    //fun getVideoApi() : KinescopeVideoApi = getRetrofit().create(KinescopeVideoApi::class.java)
     fun getKinescopeApi() : KinescopeApi = getRetrofit().create(KinescopeApi::class.java)
 }
