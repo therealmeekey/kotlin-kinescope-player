@@ -1,20 +1,13 @@
 package io.kinescope.demo.subtitles
 
 import io.kinescope.demo.R
-import io.kinescope.demo.VideosAdapter
 import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import io.kinescope.sdk.models.common.KinescopeAllVideosResponse
-import io.kinescope.sdk.models.videos.KinescopeVideo
-import io.kinescope.sdk.network.Repository
-import io.kinescope.sdk.player.KinescopePlayer
-import io.kinescope.sdk.player.KinescopePlayerOptions
+import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.view.KinescopePlayerView
 
 class SubtitlesActivity : AppCompatActivity() {
@@ -23,12 +16,12 @@ class SubtitlesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_subtitles)
-        kinescopePlayer = KinescopePlayer(this.applicationContext)
+        kinescopePlayer = KinescopeVideoPlayer(this.applicationContext)
     }
 
     lateinit var playerView:KinescopePlayerView
     lateinit var fullscreenPlayerView:KinescopePlayerView
-    lateinit var kinescopePlayer:KinescopePlayer
+    lateinit var kinescopePlayer:KinescopeVideoPlayer
 
 
 
@@ -42,7 +35,7 @@ class SubtitlesActivity : AppCompatActivity() {
         playerView.setPlayer(kinescopePlayer)
         playerView.onFullscreenButtonCallback = {toggleFullscreen()}
         fullscreenPlayerView.onFullscreenButtonCallback = {toggleFullscreen()}
-        Repository.getVideo("a7c69588-2473-4067-a9cc-250392f5e89e", object : Repository.GetVideoCallback {
+        /*Repository.getVideo("a7c69588-2473-4067-a9cc-250392f5e89e", object : Repository.GetVideoCallback {
             override fun onResponse(value: KinescopeVideo) {
                 kinescopePlayer.setVideo(value)
                 kinescopePlayer.play()
@@ -51,7 +44,7 @@ class SubtitlesActivity : AppCompatActivity() {
             override fun onFailure() {
 
             }
-        })
+        })*/
     }
 
     private fun setFullscreen(fullscreen: Boolean) {

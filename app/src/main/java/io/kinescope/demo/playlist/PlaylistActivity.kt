@@ -12,7 +12,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.kinescope.demo.application.KinescopeSDKDemoApplication
-import io.kinescope.sdk.player.KinescopePlayer
+import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.view.KinescopePlayerView
 
 class PlaylistActivity : AppCompatActivity() {
@@ -26,12 +26,12 @@ class PlaylistActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_playlist)
-        kinescopePlayer = KinescopePlayer(this.applicationContext)
+        kinescopePlayer = KinescopeVideoPlayer(this.applicationContext)
     }
 
     lateinit var playerView:KinescopePlayerView
     lateinit var fullscreenPlayerView:KinescopePlayerView
-    lateinit var kinescopePlayer:KinescopePlayer
+    lateinit var kinescopePlayer:KinescopeVideoPlayer
 
 
 
