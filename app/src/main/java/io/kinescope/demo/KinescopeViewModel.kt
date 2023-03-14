@@ -1,4 +1,4 @@
-package io.kinescope.demo.playlist
+package io.kinescope.demo
 
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.CreationExtras
@@ -10,16 +10,17 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 
-class PlaylistViewModel(private val apiHelper: KinescopeApiHelper) : ViewModel() {
+class KinescopeViewModel(private val apiHelper: KinescopeApiHelper) : ViewModel() {
     private val _allVideos:MutableLiveData<ArrayList<KinescopeVideo>> = MutableLiveData(arrayListOf())
     val allVideos:LiveData<ArrayList<KinescopeVideo>>
-    get() = _allVideos
+        get() = _allVideos
 
-    init {
-        getAllVideos()
-    }
+    private val _video:MutableLiveData<KinescopeVideo> = MutableLiveData()
+    val video:LiveData<KinescopeVideo>
+        get() = _video
 
-    private fun getAllVideos() {
+
+    fun getAllVideos() {
         viewModelScope.launch {
             apiHelper.getAllVideos().flowOn(Dispatchers.IO)
                 .catch {  e ->
@@ -31,13 +32,25 @@ class PlaylistViewModel(private val apiHelper: KinescopeApiHelper) : ViewModel()
         }
     }
 
+    fun getKinescopeVideo(videoId:String) {
+        viewModelScope.launch {
+            apiHelper.getVideo(videoId).flowOn(Dispatchers.IO)
+                .catch {  e ->
+                    e
+                }
+                .collect() {
+                    _video.value = it.data as KinescopeVideo
+                }
+        }
+    }
+
     class Factory (private val apiHelper: KinescopeApiHelper) : ViewModelProvider.Factory  {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(
             modelClass: Class<T>,
             extras: CreationExtras
         ): T {
-            return PlaylistViewModel(apiHelper) as T
+            return KinescopeViewModel(apiHelper) as T
         }
     }
 }
