@@ -15,7 +15,7 @@
             app:show_buffering="never"
             app:use_controller="false"
             app:animation_enabled="false"
-            app:resize_mode="fill"
+            app:resize_mode="fit"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

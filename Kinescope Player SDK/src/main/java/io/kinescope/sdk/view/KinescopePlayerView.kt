@@ -28,7 +28,6 @@ import com.google.android.exoplayer2.util.Util
 import io.kinescope.sdk.R
 import io.kinescope.sdk.adapter.KinescopeSettingsAdapter
 import io.kinescope.sdk.logger.KinescopeLogger
-import io.kinescope.sdk.logger.KinescopeLogger.log
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopeVideoPlayer

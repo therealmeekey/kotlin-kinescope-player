@@ -11,12 +11,11 @@ import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
 
-class KinescopeVideoPlayer(context:Context) {
+class KinescopeVideoPlayer(val context:Context, val kinescopePlayerOptions:KinescopePlayerOptions) {
+    constructor(context:Context) :  this(context, KinescopePlayerOptions())
 
     var exoPlayer: ExoPlayer? = null
     private var currentKinescopeVideo:KinescopeVideo? = null
-
-    var kinescopePlayerOptions = KinescopePlayerOptions()
 
     init {
         exoPlayer = ExoPlayer.Builder(context)
@@ -25,19 +24,7 @@ class KinescopeVideoPlayer(context:Context) {
             .build()
     }
 
-    /*fun setVideo(video: KinescopeVideo) {
-        this.video = video
-        setMediaUrl(video.assets.first().url)
-    }*/
-
     fun getVideo():KinescopeVideo? = currentKinescopeVideo
-
-    /*private fun setMediaUrl(url:String) {
-        exoPlayer?.setMediaItem(MediaItem.fromUri(url))
-        exoPlayer?.playWhenReady = false
-        exoPlayer?.prepare()
-    }*/
-
 
     fun setVideo(kinescopeVideo: KinescopeVideo) {
         val video: MediaItem
