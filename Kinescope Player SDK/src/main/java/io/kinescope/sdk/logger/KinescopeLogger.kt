@@ -3,6 +3,7 @@ package io.kinescope.sdk.logger
 import android.util.Log
 
 enum class KinescopeLoggerLevel(val value:String) {
+    SDK("KinescopeSDK"),
     NETWORK("KinescopeSDKNetwork"),
     PLAYER("KinescopeSDKPlayer"),
     PLAYER_VIEW("KinescopeSDKPlayerView"),

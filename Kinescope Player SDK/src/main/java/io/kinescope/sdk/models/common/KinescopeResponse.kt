@@ -17,3 +17,4 @@ data class KinescopeMetaResponse<A,B> (
 ):Serializable
 
 typealias KinescopeAllVideosResponse = KinescopeMetaResponse<List<KinescopeVideo>, KinescopeMetaData>
+typealias KinescopeVideoResponse = KinescopeResponse<KinescopeVideo>
