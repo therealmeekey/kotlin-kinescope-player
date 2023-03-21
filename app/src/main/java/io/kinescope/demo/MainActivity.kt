@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.widget.AppCompatButton
 import io.kinescope.demo.customui.CustomUIActivity
-import io.kinescope.demo.fullscreen.FullscreenActivity
 import io.kinescope.demo.playlist.PlaylistActivity
 import io.kinescope.demo.subtitles.SubtitlesActivity
 

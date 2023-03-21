@@ -11,13 +11,14 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.kinescope.demo.KinescopeViewModel
 import io.kinescope.demo.application.KinescopeSDKDemoApplication
 import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.view.KinescopePlayerView
 
 class PlaylistActivity : AppCompatActivity() {
-    private val viewModel: PlaylistViewModel by viewModels  {
-        PlaylistViewModel.Factory((application as KinescopeSDKDemoApplication).apiHelper)
+    private val viewModel: KinescopeViewModel by viewModels  {
+        KinescopeViewModel.Factory((application as KinescopeSDKDemoApplication).apiHelper)
     }
 
 
@@ -57,15 +58,8 @@ class PlaylistActivity : AppCompatActivity() {
         viewModel.allVideos.observe(this) {
             adapter.updateData(it)
         }
-        /*Repository.getAll(object : Repository.GetAllVideosCallback {
-            override fun onResponse(value: KinescopeAllVideosResponse) {
-                adapter.updateData(value.data)
-            }
 
-            override fun onFailure() {
-
-            }
-        })*/
+        viewModel.getAllVideos()
     }
 
     private fun setFullscreen(fullscreen: Boolean) {

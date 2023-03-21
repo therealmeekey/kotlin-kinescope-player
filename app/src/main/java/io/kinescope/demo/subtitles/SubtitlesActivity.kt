@@ -1,28 +1,45 @@
 package io.kinescope.demo.subtitles
 
+import android.content.Context
 import io.kinescope.demo.R
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
+import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import io.kinescope.demo.KinescopeViewModel
+import io.kinescope.demo.application.KinescopeSDKDemoApplication
+import io.kinescope.sdk.player.KinescopePlayerOptions
 import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.view.KinescopePlayerView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 
 class SubtitlesActivity : AppCompatActivity() {
+
+    private val viewModel: KinescopeViewModel by viewModels  {
+        KinescopeViewModel.Factory((application as KinescopeSDKDemoApplication).apiHelper)
+    }
+
     private var isVideoFullscreen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_subtitles)
-        kinescopePlayer = KinescopeVideoPlayer(this.applicationContext)
+        kinescopePlayer = KinescopeVideoPlayer(this)
+
+        viewModel.getKinescopeVideo("a7c69588-2473-4067-a9cc-250392f5e89e")
     }
 
     lateinit var playerView:KinescopePlayerView
     lateinit var fullscreenPlayerView:KinescopePlayerView
-    lateinit var kinescopePlayer:KinescopeVideoPlayer
-
+    lateinit var kinescopePlayer :KinescopeVideoPlayer
 
 
     override fun onStart() {
@@ -35,17 +52,17 @@ class SubtitlesActivity : AppCompatActivity() {
         playerView.setPlayer(kinescopePlayer)
         playerView.onFullscreenButtonCallback = {toggleFullscreen()}
         fullscreenPlayerView.onFullscreenButtonCallback = {toggleFullscreen()}
-        /*Repository.getVideo("a7c69588-2473-4067-a9cc-250392f5e89e", object : Repository.GetVideoCallback {
-            override fun onResponse(value: KinescopeVideo) {
-                kinescopePlayer.setVideo(value)
-                kinescopePlayer.play()
-            }
 
-            override fun onFailure() {
-
-            }
-        })*/
+        viewModel.video.observe(this) {
+            kinescopePlayer.setVideo(it)
+            kinescopePlayer.play()
+        }
     }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+    }
+
 
     private fun setFullscreen(fullscreen: Boolean) {
         if (fullscreen) {
@@ -54,7 +71,6 @@ class SubtitlesActivity : AppCompatActivity() {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
-
             KinescopePlayerView.switchTargetView(playerView, fullscreenPlayerView, kinescopePlayer)
 
         } else {
@@ -67,7 +83,6 @@ class SubtitlesActivity : AppCompatActivity() {
                 window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_FULLSCREEN
                         and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
             }
-
             KinescopePlayerView.switchTargetView(fullscreenPlayerView, playerView, kinescopePlayer)
         }
     }
@@ -98,6 +113,4 @@ class SubtitlesActivity : AppCompatActivity() {
         }
         super.onBackPressed()
     }
-
-
 }
