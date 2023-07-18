@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <com.google.android.exoplayer2.ui.StyledPlayerView
+            android:id="@+id/view_exoplayer"
+            app:show_buffering="never"
+            app:use_controller="false"
+            app:animation_enabled="false"
+            app:resize_mode="fit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <io.kinescope.sdk.view.KinesopeSeekView
+            android:id="@+id/kinescope_seek_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <include
+            android:id="@+id/view_buffering"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            layout="@layout/view_kinescope_buffering" />
+
+
+        <include
+            android:id="@+id/view_control"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            layout="@layout/view_kinescope_player_control" />
+
+    </FrameLayout>
+
+
+
+</merge>
+
