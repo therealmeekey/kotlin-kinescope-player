@@ -4,7 +4,7 @@ import com.squareup.moshi.JsonClass
 import java.io.Serializable
 
 @JsonClass(generateAdapter = true)
-class KinescopeVideoAdditionalMaterial (
+class KinescopeVideoAttachments (
         val id: String,
         val title: String,
         val url: String,

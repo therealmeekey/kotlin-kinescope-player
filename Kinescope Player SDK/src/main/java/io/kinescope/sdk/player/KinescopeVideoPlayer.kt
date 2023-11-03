@@ -2,55 +2,135 @@ package io.kinescope.sdk.player
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.source.dash.DashChunkSource
+import com.google.android.exoplayer2.source.dash.DashMediaSource
+import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.MimeTypes
 import com.google.common.collect.ImmutableList
+import io.kinescope.sdk.api.KinescopeFetch
 import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
+import io.kinescope.sdk.network.FetchBuilder
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class KinescopeVideoPlayer(val context:Context, val kinescopePlayerOptions:KinescopePlayerOptions) {
     constructor(context:Context) :  this(context, KinescopePlayerOptions())
 
     var exoPlayer: ExoPlayer? = null
-    private var currentKinescopeVideo:KinescopeVideo? = null
+    private val USER_AGENT = "KinescopeAndroidVideoKotlin"
+    private var currentKinescopeVideo: KinescopeVideo? = null
+    private var fetch: KinescopeFetch
 
     init {
         exoPlayer = ExoPlayer.Builder(context)
             .setSeekBackIncrementMs(10000)
             .setSeekForwardIncrementMs(10000)
             .build()
+
+        fetch = FetchBuilder.getKinescopeFetch(kinescopePlayerOptions.referer)
     }
 
-    fun getVideo():KinescopeVideo? = currentKinescopeVideo
+    private fun getDashMediaSource(videoBuilder: MediaItem.Builder): DashMediaSource {
+        val headers: MutableMap<String, String> = HashMap()
+        headers["Origin"] = "*/*"
+        headers["x-drm-type"] = "widevine"
+        headers["Referer"] = kinescopePlayerOptions.referer
 
-    fun setVideo(kinescopeVideo: KinescopeVideo) {
-        val video: MediaItem
+        val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent(USER_AGENT)
+            .setDefaultRequestProperties(headers)
+            .setTransferListener(
+                DefaultBandwidthMeter.Builder(context)
+                    .setResetOnNetworkTypeChange(false)
+                    .build()
+            )
+
+        val dashChunkSourceFactory: DashChunkSource.Factory = DefaultDashChunkSource.Factory(
+            defaultHttpDataSourceFactory
+        )
+
+        return DashMediaSource.Factory(dashChunkSourceFactory, defaultHttpDataSourceFactory)
+                .setManifestParser(KinescopeDashManifestParser())
+                .createMediaSource(
+                    videoBuilder
+                        .setDrmConfiguration(
+                            MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                                .build()
+                        )
+                        .setMimeType(MimeTypes.APPLICATION_MPD)
+                        .setTag(null)
+                        .build()
+                );
+    }
+
+    private fun setVideo(kinescopeVideo: KinescopeVideo) {
+        val videoBuilder: MediaItem.Builder;
+
+        videoBuilder = MediaItem.Builder()
+            .setUri(Uri.parse(kinescopeVideo.dashLink));
 
         if (getShowSubtitles() && kinescopeVideo.subtitles.isNotEmpty()) {
             val subtitle:MediaItem.SubtitleConfiguration = MediaItem.SubtitleConfiguration.Builder(Uri.parse(kinescopeVideo.subtitles.first().url))
                 .setMimeType(MimeTypes.TEXT_VTT)
                 .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                .build()
+                .build();
 
-            video = MediaItem.Builder()
-                .setUri(Uri.parse(kinescopeVideo.assets.first().url))
-                .setSubtitleConfigurations(ImmutableList.of(subtitle))
-                .build()
-
-
+            videoBuilder.setSubtitleConfigurations(ImmutableList.of(subtitle));
         }
-        else {
-            video = MediaItem.fromUri(Uri.parse(kinescopeVideo.assets.first().url))
-        }
+
+        val dashMediaSource = getDashMediaSource(videoBuilder)
+
         currentKinescopeVideo = kinescopeVideo
-        exoPlayer?.setMediaItem(video)
+        exoPlayer?.setMediaSource(dashMediaSource);
         exoPlayer?.playWhenReady = false
         exoPlayer?.prepare()
     }
 
+    private fun fetchUpdate() {
+        fetch = FetchBuilder.getKinescopeFetch(kinescopePlayerOptions.referer)
+    }
+
+    fun getVideo():KinescopeVideo? = currentKinescopeVideo
+
+    fun loadVideo(
+        videoId: String,
+        onSuccess: ((KinescopeVideo?) -> Unit)? = null,
+        onFailed: ((t: Throwable) -> Unit)? = null,
+    ) {
+        fetch.getVideo(videoId).enqueue(object : Callback<KinescopeVideo> {
+            override fun onResponse(call: Call<KinescopeVideo>, response: Response<KinescopeVideo>) {
+                if (response.isSuccessful){
+                    val video  = response.body()!!
+                    setVideo(video);
+
+                    if (onSuccess != null) {
+                        onSuccess(video)
+                    };
+                } else {
+                    KinescopeLogger.log(KinescopeLoggerLevel.NETWORK,"LoadVideo isSuccessful false")
+                }
+
+                if (onSuccess != null) {
+                    onSuccess(null)
+                };
+            }
+            override fun onFailure(call: Call<KinescopeVideo>, t: Throwable) {
+                if (onFailed != null) {
+                    onFailed(t)
+                };
+                KinescopeLogger.log(KinescopeLoggerLevel.NETWORK,"LoadVideo failed: $t.message.toString()")
+            }
+        })
+    }
 
     fun play() {
         exoPlayer?.play()
@@ -80,6 +160,12 @@ class KinescopeVideoPlayer(val context:Context, val kinescopePlayerOptions:Kines
     fun moveBack() {
         exoPlayer?.seekBack()
         KinescopeLogger.log(KinescopeLoggerLevel.PLAYER,"Moved back to ${exoPlayer!!.seekParameters.toleranceBeforeUs}")
+    }
+
+    fun setReferer(value: String) {
+        kinescopePlayerOptions.referer = value
+        fetchUpdate();
+        KinescopeLogger.log(KinescopeLoggerLevel.PLAYER,"Referer $value")
     }
 
     fun setPlaybackSpeed(speed:Float) {

@@ -5,9 +5,5 @@ import java.io.Serializable
 
 @JsonClass(generateAdapter = true)
 data class KinescopeVideoPoster (
-        val id:String,
-        val original:String,
-        val md:String,
-        val sm:String,
-        val xs:String
+        val url:String
         ):Serializable

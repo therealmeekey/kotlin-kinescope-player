@@ -3,7 +3,7 @@ package io.kinescope.demo
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.CreationExtras
 import io.kinescope.sdk.api.KinescopeApiHelper
-import io.kinescope.sdk.models.videos.KinescopeVideo
+import io.kinescope.sdk.models.videos.KinescopeVideoApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
@@ -11,14 +11,9 @@ import kotlinx.coroutines.launch
 
 
 class KinescopeViewModel(private val apiHelper: KinescopeApiHelper) : ViewModel() {
-    private val _allVideos:MutableLiveData<ArrayList<KinescopeVideo>> = MutableLiveData(arrayListOf())
-    val allVideos:LiveData<ArrayList<KinescopeVideo>>
+    private val _allVideos:MutableLiveData<ArrayList<KinescopeVideoApi>> = MutableLiveData(arrayListOf())
+    val allVideos:LiveData<ArrayList<KinescopeVideoApi>>
         get() = _allVideos
-
-    private val _video:MutableLiveData<KinescopeVideo> = MutableLiveData()
-    val video:LiveData<KinescopeVideo>
-        get() = _video
-
 
     fun getAllVideos() {
         viewModelScope.launch {
@@ -28,18 +23,6 @@ class KinescopeViewModel(private val apiHelper: KinescopeApiHelper) : ViewModel(
                 }
                 .collect() {
                     _allVideos.value = ArrayList(it.data)
-                }
-        }
-    }
-
-    fun getKinescopeVideo(videoId:String) {
-        viewModelScope.launch {
-            apiHelper.getVideo(videoId).flowOn(Dispatchers.IO)
-                .catch {  e ->
-                    e
-                }
-                .collect() {
-                    _video.value = it.data as KinescopeVideo
                 }
         }
     }

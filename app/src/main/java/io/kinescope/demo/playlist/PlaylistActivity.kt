@@ -47,9 +47,12 @@ class PlaylistActivity : AppCompatActivity() {
         playerView.onFullscreenButtonCallback = {toggleFullscreen()}
         fullscreenPlayerView.onFullscreenButtonCallback = {toggleFullscreen()}
 
-        val adapter = VideosAdapter() {
-            kinescopePlayer.setVideo(it)
-            kinescopePlayer.play()
+        val adapter = VideosAdapter() { videoId ->
+            kinescopePlayer.loadVideo(videoId, onSuccess = { data ->
+                if(data != null) {
+                    kinescopePlayer.play()
+                }
+            })
         }
 
         videosView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
@@ -60,6 +63,11 @@ class PlaylistActivity : AppCompatActivity() {
         }
 
         viewModel.getAllVideos()
+    }
+
+    override fun onStop() {
+        super.onStop();
+        kinescopePlayer.stop();
     }
 
     private fun setFullscreen(fullscreen: Boolean) {

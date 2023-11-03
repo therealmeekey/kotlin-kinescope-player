@@ -5,14 +5,20 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Looper
 import android.util.AttributeSet
-import android.util.Log
-import android.view.*
-import android.widget.*
+import android.view.GestureDetector
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.PopupWindow
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
-import androidx.core.view.setPadding
 import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -315,6 +321,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         kinescopePlayer?.exoPlayer?.addListener(componentListener)
         exoPlayerView?.player = kinescopePlayer?.exoPlayer
         applyKinescopePlayerOptions()
+        applyExoPlayerVisibility()
         updateAll()
     }
 
@@ -463,6 +470,14 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         updateBuffering()
         updateTimeline()
         updateTitles()
+    }
+
+    private fun applyExoPlayerVisibility() {
+        if(kinescopePlayer === null) {
+            this.exoPlayerView?.visibility = View.GONE;
+        } else {
+            this.exoPlayerView?.visibility = View.VISIBLE;
+        }
     }
 
     private fun applyKinescopePlayerOptions() {
