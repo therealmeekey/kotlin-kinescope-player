@@ -3,6 +3,7 @@ package io.kinescope.demo
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.appcompat.widget.AppCompatButton
 import io.kinescope.demo.customui.CustomUIActivity
 import io.kinescope.demo.playlist.PlaylistActivity
@@ -12,6 +13,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // https://developer.android.com/reference/android/view/Display#FLAG_SECURE
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE);
 
         //val btnFullscreen = findViewById<AppCompatButton>(R.id.btn_fullscreen)
         val btnSubtitles = findViewById<AppCompatButton>(R.id.btn_subtitles)
