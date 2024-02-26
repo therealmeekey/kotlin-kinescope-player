@@ -9,6 +9,7 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.dash.DashChunkSource
 import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.MimeTypes
@@ -69,28 +70,36 @@ class KinescopeVideoPlayer(val context:Context, val kinescopePlayerOptions:Kines
                         .setMimeType(MimeTypes.APPLICATION_MPD)
                         .setTag(null)
                         .build()
-                );
+                )
     }
 
     private fun setVideo(kinescopeVideo: KinescopeVideo) {
-        val videoBuilder: MediaItem.Builder;
+        val mediaSource = when {
+            kinescopeVideo.dashLink.isNullOrEmpty().not() -> {
+                val videoBuilder: MediaItem.Builder = MediaItem.Builder()
+                    .setUri(Uri.parse(kinescopeVideo.dashLink))
 
-        videoBuilder = MediaItem.Builder()
-            .setUri(Uri.parse(kinescopeVideo.dashLink));
+                if (getShowSubtitles() && kinescopeVideo.subtitles.isNotEmpty()) {
+                    val subtitle: MediaItem.SubtitleConfiguration =
+                        MediaItem.SubtitleConfiguration.Builder(Uri.parse(kinescopeVideo.subtitles.first().url))
+                            .setMimeType(MimeTypes.TEXT_VTT)
+                            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                            .build()
 
-        if (getShowSubtitles() && kinescopeVideo.subtitles.isNotEmpty()) {
-            val subtitle:MediaItem.SubtitleConfiguration = MediaItem.SubtitleConfiguration.Builder(Uri.parse(kinescopeVideo.subtitles.first().url))
-                .setMimeType(MimeTypes.TEXT_VTT)
-                .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                .build();
-
-            videoBuilder.setSubtitleConfigurations(ImmutableList.of(subtitle));
+                    videoBuilder.setSubtitleConfigurations(ImmutableList.of(subtitle))
+                }
+                getDashMediaSource(videoBuilder)
+            }
+            kinescopeVideo.hlsLink.isNullOrEmpty().not() -> {
+                val dataSourceFactory = DefaultHttpDataSource.Factory()
+                HlsMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
+            }
+            else -> return
         }
 
-        val dashMediaSource = getDashMediaSource(videoBuilder)
-
         currentKinescopeVideo = kinescopeVideo
-        exoPlayer?.setMediaSource(dashMediaSource);
+        exoPlayer?.setMediaSource(mediaSource)
         exoPlayer?.playWhenReady = false
         exoPlayer?.prepare()
     }

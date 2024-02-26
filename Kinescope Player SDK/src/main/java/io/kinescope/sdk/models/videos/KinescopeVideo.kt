@@ -19,6 +19,6 @@ data class KinescopeVideo (
     @Json(name = "attachments") val attachments: List<KinescopeVideoAttachments>,
     @Json(name = "subtitles") val subtitles: List<KinescopeVideoSubtitle>,
     @Json(name = "duration") val duration: Float,
-    @Json(name = "hls_link") val hlsLink:String,
-    @Json(name = "dash_link") val dashLink:String
+    @Json(name = "hls_link") val hlsLink:String?,
+    @Json(name = "dash_link") val dashLink:String?,
 ): Serializable
