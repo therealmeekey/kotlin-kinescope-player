@@ -65,6 +65,7 @@ class KinescopeVideoPlayer(
 
         return DashMediaSource.Factory(dashChunkSourceFactory, defaultHttpDataSourceFactory)
             .setManifestParser(KinescopeDashManifestParser())
+            .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
             .createMediaSource(
                 videoBuilder
                     .setDrmConfiguration(
