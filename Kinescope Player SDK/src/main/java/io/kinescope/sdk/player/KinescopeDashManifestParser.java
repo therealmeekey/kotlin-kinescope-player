@@ -2,17 +2,18 @@ package io.kinescope.sdk.player;
 
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
+import androidx.media3.common.C;
+import androidx.media3.common.DrmInitData;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.common.util.XmlPullParserUtil;
+import androidx.media3.exoplayer.dash.manifest.DashManifestParser;
+import androidx.media3.extractor.mp4.PsshAtomUtil;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.drm.DrmInitData;
-import com.google.android.exoplayer2.extractor.mp4.PsshAtomUtil;
-import com.google.android.exoplayer2.source.dash.manifest.DashManifestParser;
-import com.google.android.exoplayer2.util.Log;
-import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.util.XmlPullParserUtil;
 import com.google.common.base.Ascii;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -21,6 +22,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.util.UUID;
 
+@UnstableApi
 public class KinescopeDashManifestParser extends DashManifestParser {
     private static final String TAG = "KinescopeParser";
 
@@ -71,7 +73,7 @@ public class KinescopeDashManifestParser extends DashManifestParser {
                 licenseServerUrl = xpp.getText();
             } else if (XmlPullParserUtil.isStartTag(xpp, "ms:laurl")) {
                 licenseServerUrl = xpp.getAttributeValue(null, "licenseUrl");
-            }else if (XmlPullParserUtil.isStartTag(xpp, "dashif:Laurl") && xpp.next() == XmlPullParser.TEXT) {
+            } else if (XmlPullParserUtil.isStartTag(xpp, "dashif:Laurl") && xpp.next() == XmlPullParser.TEXT) {
                 licenseServerUrl = xpp.getText();
             } else if (data == null
                     && XmlPullParserUtil.isStartTagIgnorePrefix(xpp, "pssh")

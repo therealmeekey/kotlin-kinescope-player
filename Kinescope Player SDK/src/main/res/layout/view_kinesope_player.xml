@@ -3,42 +3,39 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent">
 
-    <FrameLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <FrameLayout xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#000000"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+        android:background="#000000">
 
-        <com.google.android.exoplayer2.ui.StyledPlayerView
+        <androidx.media3.ui.PlayerView
             android:id="@+id/view_exoplayer"
-            app:show_buffering="never"
-            app:use_controller="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             app:animation_enabled="false"
             app:resize_mode="fit"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            app:show_buffering="never"
+            app:use_controller="false" />
 
         <io.kinescope.sdk.view.KinesopeSeekView
             android:id="@+id/kinescope_seek_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
 
         <include
             android:id="@+id/view_buffering"
+            layout="@layout/view_kinescope_buffering"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            layout="@layout/view_kinescope_buffering" />
+            android:layout_height="match_parent" />
 
 
         <include
             android:id="@+id/view_control"
+            layout="@layout/view_kinescope_player_control"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            layout="@layout/view_kinescope_player_control" />
+            android:layout_height="match_parent" />
 
     </FrameLayout>
-
 
 
 </merge>
