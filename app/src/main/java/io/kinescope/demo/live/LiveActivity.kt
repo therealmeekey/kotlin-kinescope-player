@@ -63,6 +63,6 @@ class LiveActivity : AppCompatActivity() {
         /**
          * Used if the live ID field value is empty
          */
-        private const val DEFAULT_LIVE_ID = "5zWMENJ3EawysA4qbqUhar"
+        private const val DEFAULT_LIVE_ID = "v1qNUh1xoWxRehLBs4wtpA"
     }
 }
