@@ -1,7 +1,6 @@
 package io.kinescope.sdk.analytics
 
 import android.content.Context
-import android.util.Log
 import io.kinescope.sdk.utils.EMPTY
 import io.kinescope.sdk.utils.currentTimestamp
 import kotlin.math.roundToInt
@@ -183,7 +182,6 @@ class KinescopeAnalyticsManager(
         value: Float = 0f
     ) {
         if (source.isNotEmpty()) {
-            Log.v(TAG, "Event - ${event.value}; value: $value; args: $args")
             analytics.sendEvent(
                 event = event,
                 source = source,
@@ -199,7 +197,6 @@ class KinescopeAnalyticsManager(
     }
 
     companion object {
-        private const val TAG = "ANALYTICS"
         private const val EVENT_VIEW_INTERVAL_PERCENT = 2
         private const val EVENT_VIEW_MIN_INTERVAL_SECONDS = 5
         private const val EVENT_VIEW_MAX_INTERVAL_SECONDS = 60

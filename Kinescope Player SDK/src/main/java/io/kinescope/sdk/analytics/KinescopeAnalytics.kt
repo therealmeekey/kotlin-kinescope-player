@@ -11,6 +11,8 @@ import com.bhavnathacker.jettasks.Session
 import com.bhavnathacker.jettasks.SessionType
 import com.bhavnathacker.jettasks.Video
 import com.google.protobuf.ByteString
+import io.kinescope.sdk.logger.KinescopeLogger
+import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.network.AnalyticsBuilder
 import io.kinescope.sdk.utils.currentTimestamp
 import retrofit2.Call
@@ -36,7 +38,7 @@ class KinescopeAnalytics(
         watchedDuration: Int,
         args: KinescopeAnalyticsArgs
     ) {
-        val event = Native.newBuilder()
+        val body = Native.newBuilder()
             .setEvent(event.value)
             .setValue(value)
             .setVideo(
@@ -81,15 +83,24 @@ class KinescopeAnalytics(
             .setEventTime(currentTimestamp())
             .build()
 
-        analyticsApi.sendEvent(body = event)
+        KinescopeLogger.log(
+            level = KinescopeLoggerLevel.SDK,
+            message = "Analytics event. ${body.toStringData()}"
+        )
+
+        analyticsApi.sendEvent(body = body)
             .enqueue(object : Callback<Void> {
-                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) =
+                    KinescopeLogger.log(
+                        level = KinescopeLoggerLevel.NETWORK,
+                        message = "Event ${event.value} successfully sent"
+                    )
 
-                }
-
-                override fun onFailure(call: Call<Void>, t: Throwable) {
-
-                }
+                override fun onFailure(call: Call<Void>, t: Throwable) =
+                    KinescopeLogger.log(
+                        level = KinescopeLoggerLevel.NETWORK,
+                        message = "Event ${event.value} failed to send"
+                    )
             })
     }
 
