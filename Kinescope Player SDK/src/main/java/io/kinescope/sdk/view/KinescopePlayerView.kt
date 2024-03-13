@@ -20,17 +20,19 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.media3.common.C
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.Timeline
+import androidx.media3.common.util.Assertions
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
+import androidx.media3.ui.CaptionStyleCompat
+import androidx.media3.ui.PlayerControlView
+import androidx.media3.ui.PlayerView
+import androidx.media3.ui.TimeBar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Timeline
-import com.google.android.exoplayer2.ui.CaptionStyleCompat
-import com.google.android.exoplayer2.ui.StyledPlayerControlView
-import com.google.android.exoplayer2.ui.StyledPlayerView
-import com.google.android.exoplayer2.ui.TimeBar
-import com.google.android.exoplayer2.util.Assertions
-import com.google.android.exoplayer2.util.Util
 import io.kinescope.sdk.R
 import io.kinescope.sdk.adapter.KinescopeSettingsAdapter
 import io.kinescope.sdk.logger.KinescopeLogger
@@ -40,14 +42,19 @@ import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.utils.animateRotation
 import me.saket.cascade.CascadePopupMenu
 
-
-class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
+@UnstableApi
+class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
+    ConstraintLayout(context, attrs) {
     companion object {
         /**
          * Detaches player from current PlayerView and attaches to the new one
          *
          */
-        fun switchTargetView(oldPlayerView:KinescopePlayerView, newPlayerView:KinescopePlayerView, player:KinescopeVideoPlayer) {
+        fun switchTargetView(
+            oldPlayerView: KinescopePlayerView,
+            newPlayerView: KinescopePlayerView,
+            player: KinescopeVideoPlayer
+        ) {
             if (oldPlayerView === newPlayerView) {
                 return
             }
@@ -64,10 +71,11 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     }
 
     private val gestureDetector: GestureDetectorCompat
-    private var gestureListener:KinescopeGestureListener
+    private var gestureListener: KinescopeGestureListener
 
-    private inner class KinescopeGestureListener(private val rootView: View) : GestureDetector.SimpleOnGestureListener() {
-        private fun isForward(event:MotionEvent):Boolean {
+    private inner class KinescopeGestureListener(private val rootView: View) :
+        GestureDetector.SimpleOnGestureListener() {
+        private fun isForward(event: MotionEvent): Boolean {
             return event.x > (rootView.width / 2)
         }
 
@@ -77,7 +85,10 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         }
 
         override fun onDoubleTapEvent(e: MotionEvent): Boolean {
-            KinescopeLogger.log(KinescopeLoggerLevel.PLAYER_VIEW, "double tap event, isForward=${isForward(e)}")
+            KinescopeLogger.log(
+                KinescopeLoggerLevel.PLAYER_VIEW,
+                "double tap event, isForward=${isForward(e)}"
+            )
             if (isForward(e)) seekView?.showForwardView(e) else seekView?.showBackView(e)
             return super.onDoubleTapEvent(e)
         }
@@ -99,35 +110,36 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         }
     }
 
-    var onFullscreenButtonCallback:(()-> Unit)? = null
+    var onFullscreenButtonCallback: (() -> Unit)? = null
 
-    private var customControlsLayoutId:Int = 0
+    private var customControlsLayoutId: Int = 0
 
     private val formatBuilder: StringBuilder = StringBuilder()
     private val formatter = java.util.Formatter(formatBuilder, java.util.Locale.getDefault())
 
     private var kinescopePlayer: KinescopeVideoPlayer? = null
-    private var exoPlayerView: StyledPlayerView? = null
-    private var controlView:FrameLayout? = null
-    private var seekView:KinesopeSeekView? = null
-    private var bufferingView:View? = null
-    private var positionView:TextView? = null
-    private var durationView:TextView? = null
-    private var timeBar:TimeBar? = null
+    private var exoPlayerView: PlayerView? = null
+    private var controlView: FrameLayout? = null
+    private var seekView: KinesopeSeekView? = null
+    private var bufferingView: View? = null
+    private var positionView: TextView? = null
+    private var durationView: TextView? = null
+    private var timeBar: TimeBar? = null
     private var playPauseButton: View? = null
     private var optionsButton: View? = null
     private var fullscreenButton: View? = null
     private var subtitlesButton: View? = null
     private var attachmentsButton: View? = null
 
-    private var titleView:TextView? = null
-    private var authorView:TextView? = null
+    private var titleView: TextView? = null
+    private var authorView: TextView? = null
 
     private var settingsWindow: PopupWindow? = null
     private var settingsview: RecyclerView? = null
     private var settingsAdapter: KinescopeSettingsAdapter? = null
     private var playbackSpeedAdapter: KinescopeSettingsAdapter? = null
-    private val settingsWindowMargin = resources.getDimensionPixelSize(com.google.android.exoplayer2.ui.R.dimen.exo_settings_offset)
+    private val settingsWindowMargin =
+        resources.getDimensionPixelSize(R.dimen.kinescope_media_settings_offset)
 
     private var scrubbing = false
     private var window = Timeline.Window()
@@ -139,38 +151,45 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
     private val updateProgressRunnable = Runnable { updateProgress() }
 
-    private var playbackSpeedOption:String = "normal"
-    private val onPlaybackSpeedOptionsCallback = object: (String) -> Unit {
+    private var playbackSpeedOption: String = "normal"
+    private val onPlaybackSpeedOptionsCallback = object : (String) -> Unit {
         override fun invoke(speed: String) {
             when (speed) {
                 "normal" -> {
                     playbackSpeedOption = "normal"
                     kinescopePlayer?.exoPlayer?.setPlaybackSpeed(1f)
                 }
+
                 "0.25" -> {
                     playbackSpeedOption = "0.25"
                     kinescopePlayer?.exoPlayer?.setPlaybackSpeed(0.25f)
                 }
+
                 "0.5" -> {
                     playbackSpeedOption = "0.5"
                     kinescopePlayer?.exoPlayer?.setPlaybackSpeed(0.5f)
                 }
+
                 "0.75" -> {
                     playbackSpeedOption = "0.75"
                     kinescopePlayer?.exoPlayer?.setPlaybackSpeed(0.75f)
                 }
+
                 "1.25" -> {
                     playbackSpeedOption = "1.25"
                     kinescopePlayer?.exoPlayer?.setPlaybackSpeed(1.25f)
                 }
+
                 "1.5" -> {
                     playbackSpeedOption = "1.5"
                     kinescopePlayer?.exoPlayer?.setPlaybackSpeed(1.5f)
                 }
+
                 "1.75" -> {
                     playbackSpeedOption = "1.75"
                     kinescopePlayer?.exoPlayer?.setPlaybackSpeed(1.75f)
                 }
+
                 "2" -> {
                     playbackSpeedOption = "2"
                     kinescopePlayer?.exoPlayer?.setPlaybackSpeed(2f)
@@ -182,15 +201,14 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     }
 
     private val progressUpdateListener =
-        StyledPlayerControlView.ProgressUpdateListener {
-                position, bufferedPosition ->
+        PlayerControlView.ProgressUpdateListener { _, _ ->
         }
 
-    private var componentListener = object:
+    private var componentListener = object :
         Player.Listener,
         OnClickListener,
         TimeBar.OnScrubListener,
-    PopupWindow.OnDismissListener {
+        PopupWindow.OnDismissListener {
         override fun onEvents(player: Player, events: Player.Events) {
             super.onEvents(player, events)
             if (events.containsAny(
@@ -215,6 +233,16 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             //updateControllerVisibility()
         }
 
+        override fun onPlayerError(error: PlaybackException) {
+            super.onPlayerError(error)
+
+            kinescopePlayer?.exoPlayer?.let { player ->
+                if (player.playbackState == Player.STATE_IDLE && player.playWhenReady) {
+                    dispatchPlay(player)
+                }
+            }
+        }
+
         override fun onScrubStart(timeBar: TimeBar, position: Long) {
             scrubbing = true
             positionView?.text = Util.getStringForTime(formatBuilder, formatter, position)
@@ -236,17 +264,13 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
             if (playPauseButton === view) {
                 dispatchPlayPause(player)
-            }
-            else if (fullscreenButton === view) {
+            } else if (fullscreenButton === view) {
                 onFullscreenButtonCallback?.invoke()
-            }
-            else if (optionsButton === view) {
+            } else if (optionsButton === view) {
                 displaySettingsWindow(playbackSpeedAdapter!!)
-            }
-            else if (subtitlesButton === view) {
+            } else if (subtitlesButton === view) {
                 //TODO: Subtitles menu
-            }
-            else if (attachmentsButton === view) {
+            } else if (attachmentsButton === view) {
 
             }
         }
@@ -281,11 +305,20 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         titleView = controlView?.findViewById(R.id.kinescope_title)
         authorView = controlView?.findViewById(R.id.kinescope_author)
 
-        settingsview = LayoutInflater.from(context).inflate(R.layout.view_options_list, null) as RecyclerView?
+        settingsview =
+            LayoutInflater.from(context).inflate(R.layout.view_options_list, null) as RecyclerView?
         settingsAdapter = KinescopeSettingsAdapter(arrayOf("Playback speed", "Quality"), null, null)
-        playbackSpeedAdapter = KinescopeSettingsAdapter(resources.getStringArray(R.array.menu_playback_speed), playbackSpeedOption, onPlaybackSpeedOptionsCallback)
+        playbackSpeedAdapter = KinescopeSettingsAdapter(
+            resources.getStringArray(R.array.menu_playback_speed),
+            playbackSpeedOption,
+            onPlaybackSpeedOptionsCallback
+        )
         settingsview?.adapter = playbackSpeedAdapter
-        settingsview?.layoutManager = LinearLayoutManager(this@KinescopePlayerView.context, LinearLayoutManager.VERTICAL, false)
+        settingsview?.layoutManager = LinearLayoutManager(
+            this@KinescopePlayerView.context,
+            LinearLayoutManager.VERTICAL,
+            false
+        )
         settingsWindow = PopupWindow(
             settingsview,
             FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -298,15 +331,6 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         setSubtitlesStyling()
         setUIlisteners()
     }
-
-    /*private fun initializeControlsUi() {
-        if (customControlsLayoutId == 0) {
-            inflate(context, R.layout.view_kinesope_player, this)
-        }
-        else {
-            inflate(context, customControlsLayoutId, this)
-        }
-    }*/
 
     /**
      * Attaches Kinescope player and loads KinescopePlayerOptions
@@ -330,7 +354,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     }*/
 
 
-    private fun getVideo():KinescopeVideo? = kinescopePlayer?.getVideo()
+    private fun getVideo(): KinescopeVideo? = kinescopePlayer?.getVideo()
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -341,12 +365,12 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         updateAll()
     }
 
-    fun setCustomControllerLayoutID(value:Int) {
+    fun setCustomControllerLayoutID(value: Int) {
         customControlsLayoutId = value
     }
 
     private var isVideoFullscreen = false
-    fun setIsFullscreen(value:Boolean) {
+    fun setIsFullscreen(value: Boolean) {
         isVideoFullscreen = value
         updateFullscreenButton()
     }
@@ -373,12 +397,16 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
         //CascadePopupMenu(context, optionsButton!!)
 
-
         val popup = CascadePopupMenu(
             context = context,
             anchor = optionsButton!!,
             styler = CascadePopupMenu.Styler(
-              background = {AppCompatResources.getDrawable(context, R.drawable.bg_options_rect)},
+                background = {
+                    AppCompatResources.getDrawable(
+                        context,
+                        R.drawable.bg_options_rect
+                    )
+                },
                 menuItem = {
                     it.titleView.setTextColor(Color.parseColor("#ffffff"))
                     it.subMenuArrowView.updatePadding(right = 56)
@@ -395,18 +423,16 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         //popup.popup.setBackgroundDrawable(context.getDrawable(R.drawable.bg_options_rect))
         popup.menu.addSubMenu("Video quality")
             .setIcon(R.drawable.ic_option_quality)
-            .also {
-            sub ->
+            .also { sub ->
                 sub.add("480p")
                 sub.add("720p")
                 sub.add("1080p")
 
 
-        }
+            }
         popup.menu.addSubMenu("Playback speed")
             .setIcon(R.drawable.ic_option_playback_speed)
-            .also {
-                    sub ->
+            .also { sub ->
                 sub.add("0.5")
                 sub.add("0.75")
                 sub.add("Normal")
@@ -447,15 +473,18 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     private fun updateBuffering() {
         if (bufferingView != null) {
             val showBufferingSpinner =
-                kinescopePlayer?.exoPlayer != null && kinescopePlayer!!.exoPlayer!!.playbackState == Player.STATE_BUFFERING && (showBuffering == StyledPlayerView.SHOW_BUFFERING_ALWAYS
-                        || showBuffering == StyledPlayerView.SHOW_BUFFERING_WHEN_PLAYING && kinescopePlayer!!.exoPlayer!!.playWhenReady)
+                kinescopePlayer?.exoPlayer != null
+                        && kinescopePlayer!!.exoPlayer!!.playbackState == Player.STATE_BUFFERING
+                        && (showBuffering == PlayerView.SHOW_BUFFERING_ALWAYS
+                        || showBuffering == PlayerView.SHOW_BUFFERING_WHEN_PLAYING
+                        && kinescopePlayer!!.exoPlayer!!.playWhenReady)
+
             bufferingView!!.isVisible = showBufferingSpinner
 
             val view = bufferingView?.findViewById<ProgressBar>(R.id.kinescope_buffering)
             if (showBufferingSpinner) {
                 view?.animateRotation()
-            }
-            else {
+            } else {
                 view?.clearAnimation()
             }
         }
@@ -473,7 +502,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     }
 
     private fun applyExoPlayerVisibility() {
-        if(kinescopePlayer === null) {
+        if (kinescopePlayer === null) {
             this.exoPlayerView?.visibility = View.GONE;
         } else {
             this.exoPlayerView?.visibility = View.VISIBLE;
@@ -482,7 +511,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
 
     private fun applyKinescopePlayerOptions() {
         val options = kinescopePlayer?.kinescopePlayerOptions
-        if (options!= null) {
+        if (options != null) {
             fullscreenButton?.isVisible = options.showFullscreenButton
             seekView?.isVisible = options.showSeekBar
             subtitlesButton?.isVisible = options.showSubtitlesButton
@@ -505,12 +534,22 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
             if (shouldShowPauseButton()) {
                 (playPauseButton as ImageView)
                     /*.setImageDrawable(resources.getDrawable(com.google.android.exoplayer2.ui.R.drawable.exo_styled_controls_pause))*/
-                    .setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.kinescope_controls_pause ))
+                    .setImageDrawable(
+                        AppCompatResources.getDrawable(
+                            context,
+                            R.drawable.kinescope_controls_pause
+                        )
+                    )
                 //playPauseButton?.contentDescription = resources.getString(com.google.android.exoplayer2.ui.R.string.exo_controls_pause_description)
             } else {
                 (playPauseButton as ImageView)
                     /*.setImageDrawable(resources.getDrawable(com.google.android.exoplayer2.ui.R.drawable.exo_styled_controls_play))*/
-                    .setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.kinescope_controls_play))
+                    .setImageDrawable(
+                        AppCompatResources.getDrawable(
+                            context,
+                            R.drawable.kinescope_controls_play
+                        )
+                    )
                 //playPauseButton?.contentDescription = resources.getString(com.google.android.exoplayer2.ui.R.string.exo_controls_play_description)
             }
         }
@@ -520,10 +559,20 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
         if (fullscreenButton != null) {
             if (isVideoFullscreen) {
                 (fullscreenButton as ImageView)
-                    .setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_fullscreen_disable ))
+                    .setImageDrawable(
+                        AppCompatResources.getDrawable(
+                            context,
+                            R.drawable.ic_fullscreen_disable
+                        )
+                    )
             } else {
                 (fullscreenButton as ImageView)
-                    .setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_fullscreen))
+                    .setImageDrawable(
+                        AppCompatResources.getDrawable(
+                            context,
+                            R.drawable.ic_fullscreen
+                        )
+                    )
             }
         }
     }
@@ -688,7 +737,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) : ConstraintLa
     }
 
 
-    private fun  setSubtitlesStyling() {
+    private fun setSubtitlesStyling() {
         exoPlayerView?.subtitleView?.setStyle(
             CaptionStyleCompat(
                 Color.WHITE,
