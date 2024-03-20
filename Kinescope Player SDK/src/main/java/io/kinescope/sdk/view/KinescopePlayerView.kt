@@ -225,16 +225,44 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
             super.onPlayWhenReadyChanged(playWhenReady, reason)
             updateBuffering()
             //updateControllerVisibility();
+
+            KinescopeLogger.log(
+                KinescopeLoggerLevel.PLAYER_VIEW,
+                "playWhenReady = $playWhenReady"
+            );
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
             updateBuffering()
             //updateControllerVisibility()
+
+            when (playbackState) {
+                Player.STATE_READY -> KinescopeLogger.log(
+                    KinescopeLoggerLevel.PLAYER_VIEW,
+                    "state = STATE_READY"
+                );
+                Player.STATE_IDLE -> KinescopeLogger.log(
+                    KinescopeLoggerLevel.PLAYER_VIEW,
+                    "state = STATE_IDLE"
+                );
+                Player.STATE_BUFFERING -> KinescopeLogger.log(
+                    KinescopeLoggerLevel.PLAYER_VIEW,
+                    "state = STATE_BUFFERING"
+                );
+                Player.STATE_ENDED -> KinescopeLogger.log(
+                    KinescopeLoggerLevel.PLAYER_VIEW,
+                    "state = STATE_ENDED"
+                );
+            }
         }
 
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
+            KinescopeLogger.log(
+                KinescopeLoggerLevel.PLAYER_VIEW,
+                "error message: ${error.message}, stackTraceToString: ${error.stackTraceToString()}"
+            );
 
             kinescopePlayer?.exoPlayer?.let { player ->
                 if (player.playbackState == Player.STATE_IDLE && player.playWhenReady) {
