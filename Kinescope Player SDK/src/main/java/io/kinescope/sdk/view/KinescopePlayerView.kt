@@ -55,19 +55,33 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
          *
          */
         fun switchTargetView(
-            oldPlayerView: KinescopePlayerView,
-            newPlayerView: KinescopePlayerView,
+            oldPlayerView: KinescopePlayerView?,
+            newPlayerView: KinescopePlayerView?,
             player: KinescopeVideoPlayer
         ) {
-            if (oldPlayerView === newPlayerView) {
+            if (oldPlayerView === newPlayerView || oldPlayerView == null || newPlayerView == null) {
                 return
             }
-            if (newPlayerView != null) {
-                newPlayerView.setPlayer(player)
+
+            newPlayerView.let {
+                it.setPlayer(player)
+                it.posterView?.isVisible = oldPlayerView.posterView?.isVisible ?: false
+                it.liveStartDateContainerView?.isVisible =
+                    oldPlayerView.liveStartDateContainerView?.isVisible ?: false
+
+                if (oldPlayerView.isLiveState) {
+                    it.isLiveState = true
+                    it.isLiveSynced = oldPlayerView.isLiveSynced
+
+                    it.positionView?.isVisible = false
+                    it.durationView?.isVisible = false
+                    it.timeSeparatorView?.isVisible = false
+                    it.liveDataView?.isVisible = true
+                }
+
             }
-            if (oldPlayerView != null) {
-                oldPlayerView.setPlayer(null)
-            }
+
+            oldPlayerView.setPlayer(null)
         }
 
         private const val DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS = 200
