@@ -2,13 +2,13 @@ package io.kinescope.sdk.player;
 
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.media3.common.C;
 import androidx.media3.common.DrmInitData;
 import androidx.media3.common.MimeTypes;
+import androidx.media3.common.util.Log;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.common.util.XmlPullParserUtil;
 import androidx.media3.exoplayer.dash.manifest.DashManifestParser;
