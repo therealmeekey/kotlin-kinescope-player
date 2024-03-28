@@ -115,13 +115,13 @@ class KinescopeAnalyticsManager(
             args = args,
         )
 
-    fun qualityChangedFullscreen(args: KinescopeAnalyticsArgs) =
+    fun qualityChanged(args: KinescopeAnalyticsArgs) =
         sendEvent(
             event = KinescopeAnalytics.Event.QUALITY_CHANGED,
             args = args,
         )
 
-    fun autoQualityChangedFullscreen(args: KinescopeAnalyticsArgs) =
+    fun autoQualityChanged(args: KinescopeAnalyticsArgs) =
         sendEvent(
             event = KinescopeAnalytics.Event.AUTO_QUALITY,
             args = args,
