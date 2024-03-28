@@ -1,6 +1,6 @@
 package io.kinescope.sdk.analytics
 
-import com.bhavnathacker.jettasks.Native
+import io.kinescope.sdk.analytics.proto.Native
 
 fun Native.toStringData() =
     "Event: $event; Value: $value; " +
