@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.os.Build
 import com.google.protobuf.ByteString
+import io.kinescope.sdk.BuildConfig
 import io.kinescope.sdk.analytics.proto.Device
 import io.kinescope.sdk.analytics.proto.Native
 import io.kinescope.sdk.analytics.proto.Playback
@@ -121,7 +122,7 @@ class KinescopeAnalytics(
     }
 
     companion object {
-        private const val PLAYER_VERSION = "1.1.1"
+        private const val PLAYER_VERSION = BuildConfig.VERSION_NAME
         private const val PLAYER_TYPE = "Android SDK"
 
         private const val DEVICE_OS = "Android"
