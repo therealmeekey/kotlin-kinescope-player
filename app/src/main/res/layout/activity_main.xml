@@ -1,32 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="center"
-    android:gravity="center"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    android:gravity="center"
+    android:layout_gravity="center"
+    tools:context=".MainActivity"
+    >
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_playlist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/kinescope_progressbar_played_color"
-        android:text="Playlist test"
         android:textColor="@color/white"
-        android:textSize="24sp" />
+        android:text="Playlist test"
+        android:textSize="24sp"
+        />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_subtitles"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:backgroundTint="@color/kinescope_progressbar_played_color"
-        android:text="Subtitles test"
         android:textColor="@color/white"
-        android:textSize="24sp" />
+        android:text="Subtitles test"
+        android:textSize="24sp"
+        android:layout_marginTop="32dp"
+        />
 
     <!--<androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_fullscreen"
@@ -43,20 +47,12 @@
         android:id="@+id/btn_custom_ui"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:textColor="@color/white"
         android:text="Custom UI test"
-        android:textColor="@color/white"
-        android:textSize="24sp" />
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btn_live"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:textSize="24sp"
         android:layout_marginTop="32dp"
-        android:backgroundTint="@color/kinescope_progressbar_played_color"
-        android:text="Live test"
-        android:textColor="@color/white"
-        android:textSize="24sp" />
+        />
+
 
 </LinearLayout>

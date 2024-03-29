@@ -5,13 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import io.kinescope.sdk.models.videos.KinescopeVideoApi
+import io.kinescope.sdk.models.videos.KinescopeVideo
 
-class VideosAdapter(val callback: (String)-> Unit) : RecyclerView.Adapter<VideosAdapter.ViewHolder>() {
+class VideosAdapter(val callback: (KinescopeVideo)-> Unit) : RecyclerView.Adapter<VideosAdapter.ViewHolder>() {
 
-    private val arr = ArrayList<KinescopeVideoApi>()
+    private val arr = ArrayList<KinescopeVideo>()
 
-    fun updateData(value:List<KinescopeVideoApi>) {
+    fun updateData(value:List<KinescopeVideo>) {
         arr.clear()
         arr.addAll(value)
         notifyDataSetChanged()
@@ -30,20 +30,20 @@ class VideosAdapter(val callback: (String)-> Unit) : RecyclerView.Adapter<Videos
     }
 
     inner class ViewHolder(private val view:View) :  RecyclerView.ViewHolder(view.rootView), View.OnClickListener {
-        private var video: KinescopeVideoApi? = null
-        val title: TextView = view.findViewById(R.id.tv_title)
+        private var video: KinescopeVideo? = null
+        val title:TextView = view.findViewById(R.id.tv_title)
 
         init {
             view.setOnClickListener(this)
         }
 
-        fun bind(video: KinescopeVideoApi) {
+        fun bind(video: KinescopeVideo) {
             this.video = video
             title.text = video.title
         }
 
         override fun onClick(p0: View?) {
-            video?.let { callback.invoke(it.id) }
+            callback.invoke(video!!)
         }
 
     }
