@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId "io.kinescope.demo"
-        minSdk 21
+        minSdk 27
         targetSdk 33
         versionCode 1
         versionName "0.1"
@@ -65,5 +65,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
-
+    def media3_version = "1.1.1"
+    implementation "androidx.media3:media3-common:$media3_version"
 }
