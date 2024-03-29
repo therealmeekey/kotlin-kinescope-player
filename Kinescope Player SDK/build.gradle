@@ -10,18 +10,25 @@ android {
     compileSdk 33
 
     defaultConfig {
-        minSdk 27
+        minSdk 26
         targetSdk 33
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
-        versionName "0.1"
+
+        versionName "0.2"
     }
 
     buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}\"")
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}\"")
         }
     }
     compileOptions {
@@ -51,7 +58,7 @@ protobuf {
 
 configurations.all {
     resolutionStrategy {
-        force("com.google.protobuf:protobuf-javalite:3.18.0")
+        force("com.google.protobuf:protobuf-javalite:3.25.3")
     }
 }
 
@@ -78,5 +85,5 @@ dependencies {
 
     implementation 'com.squareup.picasso:picasso:2.8'
 
-    implementation  "androidx.datastore:datastore-core:1.0.0"
+    implementation "androidx.datastore:datastore-core:1.0.0"
 }
