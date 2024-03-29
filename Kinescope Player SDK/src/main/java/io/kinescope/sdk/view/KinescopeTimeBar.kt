@@ -16,11 +16,11 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ui.TimeBar
-import com.google.android.exoplayer2.ui.TimeBar.OnScrubListener
-import com.google.android.exoplayer2.util.Assertions
-import com.google.android.exoplayer2.util.Util
+import androidx.media3.common.C
+import androidx.media3.common.util.Assertions
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
+import androidx.media3.ui.TimeBar
 import io.kinescope.sdk.R
 
 import java.util.*
@@ -122,6 +122,8 @@ import java.util.concurrent.CopyOnWriteArraySet
  *
  *
  */
+
+@UnstableApi
 class KinescopeTimeBar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -150,7 +152,7 @@ class KinescopeTimeBar @JvmOverloads constructor(
     private val formatBuilder: StringBuilder
     private val formatter: Formatter
     private val stopScrubbingRunnable: Runnable
-    private val listeners: CopyOnWriteArraySet<OnScrubListener>
+    private val listeners: CopyOnWriteArraySet<TimeBar.OnScrubListener>
     private val touchPosition: Point
     private val density: Float
     private var keyCountIncrement: Int
@@ -293,12 +295,12 @@ class KinescopeTimeBar @JvmOverloads constructor(
     }
 
     // TimeBar implementation.
-    override fun addListener(listener: OnScrubListener) {
+    override fun addListener(listener: TimeBar.OnScrubListener) {
         Assertions.checkNotNull(listener)
         listeners.add(listener)
     }
 
-    override fun removeListener(listener: OnScrubListener) {
+    override fun removeListener(listener: TimeBar.OnScrubListener) {
         listeners.remove(listener)
     }
 
@@ -382,6 +384,7 @@ class KinescopeTimeBar @JvmOverloads constructor(
                 invalidate()
                 return true
             }
+
             MotionEvent.ACTION_MOVE -> if (scrubbing) {
                 if (y < fineScrubYThreshold) {
                     val relativeX = x - lastCoarseScrubXPosition
@@ -395,10 +398,12 @@ class KinescopeTimeBar @JvmOverloads constructor(
                 invalidate()
                 return true
             }
+
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> if (scrubbing) {
                 stopScrubbing( /* canceled= */event.action == MotionEvent.ACTION_CANCEL)
                 return true
             }
+
             else -> {}
         }
         return false
@@ -419,6 +424,7 @@ class KinescopeTimeBar @JvmOverloads constructor(
                         return true
                     }
                 }
+
                 KeyEvent.KEYCODE_DPAD_RIGHT -> if (scrubIncrementally(positionIncrement)) {
                     removeCallbacks(stopScrubbingRunnable)
                     postDelayed(
@@ -427,10 +433,12 @@ class KinescopeTimeBar @JvmOverloads constructor(
                     )
                     return true
                 }
+
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> if (scrubbing) {
                     stopScrubbing( /* canceled= */false)
                     return true
                 }
+
                 else -> {}
             }
         }
@@ -890,7 +898,10 @@ class KinescopeTimeBar @JvmOverloads constructor(
                         Math.max(scrubberDrawable!!.minimumHeight, defaultTouchTargetHeight)
                 }
                 barHeight =
-                    a.getDimensionPixelSize(R.styleable.KinescopeTimeBar_bar_height, defaultBarHeight)
+                    a.getDimensionPixelSize(
+                        R.styleable.KinescopeTimeBar_bar_height,
+                        defaultBarHeight
+                    )
                 touchTargetHeight = a.getDimensionPixelSize(
                     R.styleable.KinescopeTimeBar_touch_target_height, defaultTouchTargetHeight
                 )
