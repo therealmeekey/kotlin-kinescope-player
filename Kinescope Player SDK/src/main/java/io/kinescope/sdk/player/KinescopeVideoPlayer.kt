@@ -140,10 +140,6 @@ class KinescopeVideoPlayer(
                     val video = response.body()!!
                     setVideo(video)
                     onSuccess?.invoke(video)
-
-                    if (onSuccess != null) {
-                        onSuccess(video)
-                    };
                 } else {
                     KinescopeLogger.log(
                         KinescopeLoggerLevel.NETWORK,
