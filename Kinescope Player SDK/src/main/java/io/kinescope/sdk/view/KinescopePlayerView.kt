@@ -3,10 +3,10 @@ package io.kinescope.sdk.view
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
+import android.media.AudioManager
 import android.os.Looper
 import android.util.AttributeSet
 import android.view.GestureDetector
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -37,18 +37,24 @@ import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import io.kinescope.sdk.R
 import io.kinescope.sdk.adapter.KinescopeSettingsAdapter
+import io.kinescope.sdk.analytics.KinescopeAnalyticsManager
+import io.kinescope.sdk.analytics.KinescopeAnalyticsArgs
 import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopeVideoPlayer
+import io.kinescope.sdk.utils.EMPTY
 import io.kinescope.sdk.utils.animateRotation
 import io.kinescope.sdk.utils.formatLiveStartDate
 import me.saket.cascade.CascadePopupMenu
+import kotlin.math.roundToInt
 
 
 @UnstableApi
-class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
-    ConstraintLayout(context, attrs) {
+class KinescopePlayerView(
+    context: Context, attrs:
+    AttributeSet?
+) : ConstraintLayout(context, attrs) {
     companion object {
         /**
          * Detaches player from current PlayerView and attaches to the new one
@@ -90,6 +96,8 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
 
     private val gestureDetector: GestureDetectorCompat
     private var gestureListener: KinescopeGestureListener
+
+    private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
     private inner class KinescopeGestureListener(private val rootView: View) :
         GestureDetector.SimpleOnGestureListener() {
@@ -186,8 +194,13 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
             field = value
         }
 
+    private var analyticsManager = KinescopeAnalyticsManager(context)
+
     private val updateProgressRunnable = Runnable {
         updateProgress()
+        getAnalyticsArguments().let { args ->
+            analyticsManager.tick(args = args)
+        }
     }
 
     private var playbackSpeedOption: String = "normal"
@@ -236,7 +249,6 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
             }
             settingsWindow?.dismiss()
         }
-
     }
 
     private val progressUpdateListener =
@@ -259,19 +271,30 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
             }
         }
 
-        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-            super.onPlayWhenReadyChanged(playWhenReady, reason)
-            updateBuffering()
-        }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
 
-            if (playbackState == Player.STATE_READY) {
-                posterView?.isVisible = false
-                liveStartDateContainerView?.isVisible = false
+            getAnalyticsArguments().let { args ->
+                when (playbackState) {
+                    Player.STATE_BUFFERING -> analyticsManager.buffering()
+
+                    Player.STATE_READY -> {
+                        posterView?.isVisible = false
+                        liveStartDateContainerView?.isVisible = false
+                        analyticsManager.ready(args = args)
+                    }
+
+                    Player.STATE_ENDED -> analyticsManager.end(args = args)
+
+                    else -> {}
+                }
             }
 
+            updateBuffering()
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            super.onPlayWhenReadyChanged(playWhenReady, reason)
             updateBuffering()
         }
 
@@ -298,6 +321,10 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
             }
 
             positionView?.text = Util.getStringForTime(formatBuilder, formatter, position)
+
+            getAnalyticsArguments().let { args ->
+                analyticsManager.seek(args = args)
+            }
         }
 
         override fun onScrubMove(timeBar: TimeBar, position: Long) {
@@ -421,6 +448,9 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
         this.kinescopePlayer?.exoPlayer?.removeListener(componentListener)
         this.kinescopePlayer = kinescopePlayer
         kinescopePlayer?.exoPlayer?.addListener(componentListener)
+        kinescopePlayer?.onSourceChanged = { source ->
+            analyticsManager.sourceChanged(newSource = source)
+        }
         exoPlayerView?.player = kinescopePlayer?.exoPlayer
         applyKinescopePlayerOptions()
         applyExoPlayerVisibility()
@@ -443,22 +473,19 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
             formatLiveStartDate(date)
                 .takeIf { date.isNotEmpty() }
                 ?.let { formattedDate ->
-                    println(formattedDate)
-
-                    println(liveStartDateContainerView)
-                    println(liveStartDateTextView)
-
                     liveStartDateContainerView?.isVisible = true
                     liveStartDateTextView?.text = formattedDate
                 }
         }
 
-
-        posterUrl?.let {
-            Picasso.get()
-                .load(posterUrl)
-                .placeholder(ContextCompat.getDrawable(context, R.drawable.default_poster)!!)
-                .into(posterView)
+        with(posterView) {
+            isVisible = true
+            posterUrl?.let {
+                Picasso.get()
+                    .load(posterUrl)
+                    .placeholder(ContextCompat.getDrawable(context, R.drawable.default_poster)!!)
+                    .into(this)
+            }
         }
     }
 
@@ -478,6 +505,16 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
     }
 
     private var isVideoFullscreen = false
+        set(value) {
+            getAnalyticsArguments().let { args ->
+                when (value) {
+                    true -> analyticsManager.enterFullscreen(args = args)
+                    else -> analyticsManager.exitFullscreen(args = args)
+                }
+            }
+            field = value
+        }
+
     fun setIsFullscreen(value: Boolean) {
         isVideoFullscreen = value
         updateFullscreenButton()
@@ -524,8 +561,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
                     it.titleView.compoundDrawablePadding = 48
                     it.titleView.updatePadding(left = 36)
                 },
-            ),
-            gravity = Gravity.TOP
+            )
         )
 
         //popup.popup.setBackgroundDrawable(context.getDrawable(R.drawable.bg_options_rect))
@@ -535,9 +571,8 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
                 sub.add("480p")
                 sub.add("720p")
                 sub.add("1080p")
-
-
             }
+
         popup.menu.addSubMenu("Playback speed")
             .setIcon(R.drawable.ic_option_playback_speed)
             .also { sub ->
@@ -702,7 +737,7 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
     }
 
     private fun updateProgress() {
-        if (!controlView!!.isVisible || !isAttachedToWindow) {
+        if (!isAttachedToWindow) {
             return
         }
         val player: Player? = kinescopePlayer?.exoPlayer
@@ -832,6 +867,10 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
             seekTo(player, player.currentMediaItemIndex, C.TIME_UNSET)
         }
         player.play()
+
+        getAnalyticsArguments().let { args ->
+            analyticsManager.play(args = args)
+        }
     }
 
     private fun dispatchPause(player: Player) {
@@ -839,6 +878,10 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
 
         if (isLiveState) {
             isLiveSynced = false
+        }
+
+        getAnalyticsArguments().let { args ->
+            analyticsManager.pause(args = args)
         }
     }
 
@@ -884,4 +927,29 @@ class KinescopePlayerView(context: Context, attrs: AttributeSet?) :
             )
         }
     }
+
+    private fun getAnalyticsArguments() =
+        kinescopePlayer?.exoPlayer?.let { player ->
+            player.playbackParameters.speed
+            player.volume
+            player.isDeviceMuted
+            isVideoFullscreen
+            player.bufferedPosition
+
+            val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            val volume = 100 * currentVolume / maxVolume
+            val isMuted = volume == 0
+
+            KinescopeAnalyticsArgs(
+                duration = (player.duration.toFloat() / 1000f).roundToInt(),
+                rate = player.playbackParameters.speed,
+                volume = volume,
+                quality = String.EMPTY,
+                isMuted = isMuted,
+                isFullScreen = isVideoFullscreen,
+                previewPosition = (player.bufferedPosition.toFloat() / 1000f).roundToInt(),
+                currentPosition = (player.currentPosition.toFloat() / 1000f).roundToInt(),
+            )
+        } ?: KinescopeAnalyticsArgs()
 }

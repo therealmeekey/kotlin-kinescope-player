@@ -31,6 +31,8 @@ class KinescopeVideoPlayer(
     constructor(context: Context) : this(context, KinescopePlayerOptions())
 
     var exoPlayer: ExoPlayer? = null
+    var onSourceChanged: ((source: String) -> Unit)? = null
+
     private val USER_AGENT = "KinescopeAndroidVideoKotlin"
     private var currentKinescopeVideo: KinescopeVideo? = null
     private var fetch: KinescopeFetch
@@ -79,6 +81,8 @@ class KinescopeVideoPlayer(
     }
 
     private fun setVideo(kinescopeVideo: KinescopeVideo) {
+        val source: String
+
         val mediaSource = when {
             kinescopeVideo.dashLink.isNullOrEmpty().not() -> {
                 val videoBuilder: MediaItem.Builder = MediaItem.Builder()
@@ -93,18 +97,24 @@ class KinescopeVideoPlayer(
 
                     videoBuilder.setSubtitleConfigurations(ImmutableList.of(subtitle))
                 }
+
+                source = kinescopeVideo.dashLink.orEmpty()
                 getDashMediaSource(videoBuilder)
             }
 
-            kinescopeVideo.hlsLink.isNullOrEmpty().not() ->
+            kinescopeVideo.hlsLink.isNullOrEmpty().not() -> {
+                source = kinescopeVideo.hlsLink.orEmpty()
                 HlsMediaSource.Factory(DefaultHttpDataSource.Factory())
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
+            }
 
             else -> return
         }
 
         currentKinescopeVideo = kinescopeVideo
+        onSourceChanged?.invoke(source)
+
         exoPlayer?.setMediaSource(mediaSource)
         exoPlayer?.playWhenReady = false
         exoPlayer?.prepare()

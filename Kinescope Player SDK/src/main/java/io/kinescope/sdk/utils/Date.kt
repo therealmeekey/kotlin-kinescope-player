@@ -14,3 +14,5 @@ fun formatLiveStartDate(startDate: String): String =
     } catch (e: Exception) {
         String()
     }
+
+fun currentTimestamp() = (System.currentTimeMillis() / 1000).toInt()
