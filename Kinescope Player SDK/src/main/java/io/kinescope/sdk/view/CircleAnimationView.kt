@@ -9,6 +9,7 @@ import android.graphics.Path
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import io.kinescope.sdk.R
 
 internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
@@ -21,10 +22,12 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
     private var heightPx = 0
 
     // Background
+
     private var shapePath = Path()
     private var isLeft = true
 
     // Circle
+
     private var cX = 0f
     private var cY = 0f
 
@@ -33,6 +36,7 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
     private var maxRadius: Int = 0
 
     // Animation
+
     private var valueAnimator: ValueAnimator? = null
     private var forceReset = false
 
@@ -67,8 +71,8 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
 
     var performAtEnd: () -> Unit = { visibility = INVISIBLE }
 
-    /**
-     * Getter and setter
+    /*
+        Getter and setter
      */
 
     var arcSize: Float = 80f
@@ -95,6 +99,14 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
             getCircleAnimator().duration = value
         }
 
+    /*
+       Methods
+    */
+
+    /*
+        Circle
+     */
+
     fun updatePosition(x: Float, y: Float) {
         cX = x
         cY = y
@@ -111,15 +123,15 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
         invalidate()
     }
 
-    /**
-     * Background
+    /*
+        Background
      */
 
     private fun updatePathShape() {
         val halfWidth = widthPx * 0.5f
 
         shapePath.reset()
-        // shapePath.fillType = Path.FillType.WINDING
+//        shapePath.fillType = Path.FillType.WINDING
 
         val w = if (isLeft) 0f else widthPx.toFloat()
         val f = if (isLeft) 1 else -1
@@ -138,8 +150,8 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
         invalidate()
     }
 
-    /**
-     * Animation
+    /*
+        Animation
      */
 
     private fun getCircleAnimator(): ValueAnimator {
@@ -181,8 +193,8 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
         getCircleAnimator().end()
     }
 
-    /**
-     * Others: Drawing and Measurements
+    /*
+        Others: Drawing and Measurements
      */
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -192,14 +204,14 @@ internal class CircleAnimationView(context: Context?, attrs: AttributeSet) :
         updatePathShape()
     }
 
-    override fun onDraw(canvas: Canvas) {
+    override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         // Background
-        canvas.clipPath(shapePath)
-        canvas.drawPath(shapePath, backgroundPaint)
+        canvas?.clipPath(shapePath)
+        canvas?.drawPath(shapePath, backgroundPaint)
 
         // Circle
-        canvas.drawCircle(cX, cY, currentRadius, circlePaint)
+        canvas?.drawCircle(cX, cY, currentRadius, circlePaint)
     }
 }

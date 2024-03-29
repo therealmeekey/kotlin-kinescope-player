@@ -4,15 +4,25 @@ import io.kinescope.demo.R
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
+import io.kinescope.demo.KinescopeViewModel
+import io.kinescope.demo.application.KinescopeSDKDemoApplication
 
 import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.view.KinescopePlayerView
 
 class CustomUIActivity : AppCompatActivity() {
+    private var isVideoFullscreen = false
+
+    private val viewModel: KinescopeViewModel by viewModels  {
+        KinescopeViewModel.Factory((application as KinescopeSDKDemoApplication).apiHelper)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_custom)
         kinescopeVideoPlayer = KinescopeVideoPlayer(this.applicationContext)
+        viewModel.getKinescopeVideo("b138bf19-72fc-474b-901b-00f323899598")
     }
 
     lateinit var playerView:KinescopePlayerView
@@ -27,17 +37,11 @@ class CustomUIActivity : AppCompatActivity() {
         playerView.setPlayer(kinescopeVideoPlayer)
         //playerView.setCustomControllerLayoutID(R.layout.view_custom_ui)
 
-        kinescopeVideoPlayer.loadVideo("b138bf19-72fc-474b-901b-00f323899598", onSuccess = {
-            if(it != null) {
-                kinescopeVideoPlayer.play()
-            }
-        })
+        viewModel.video.observe(this) {
+            kinescopeVideoPlayer.setVideo(it)
+            kinescopeVideoPlayer.play()
+        }
         setListeners()
-    }
-
-    override fun onStop() {
-        super.onStop();
-        kinescopeVideoPlayer.stop();
     }
 
     private fun setListeners() {
