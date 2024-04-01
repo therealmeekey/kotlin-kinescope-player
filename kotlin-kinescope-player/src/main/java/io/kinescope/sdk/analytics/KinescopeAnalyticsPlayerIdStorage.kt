@@ -15,10 +15,10 @@ class KinescopeAnalyticsPlayerIdStorage(
 
     fun getPlayerId(): String =
         with(sharedPreferences) {
-            val playerId = sharedPreferences.getString(KEY_PLAYER_ID, String.EMPTY)
+            val playerId = getString(KEY_PLAYER_ID, String.EMPTY)
             if (playerId.isNullOrEmpty()) {
                 val newPlayerId = UUID.randomUUID().toString()
-                sharedPreferences.edit()
+                edit()
                     .putString(KEY_PLAYER_ID, newPlayerId)
                     .apply()
                 return newPlayerId
