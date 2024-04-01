@@ -1,28 +1,43 @@
-# kotlin-kinescope-player 
+# kotlin-kinescope-player
 [![](https://jitpack.io/v/kinescope/kotlin-kinescope-player.svg)](https://jitpack.io/#kinescope/kotlin-kinescope-player)
 
 ## Installation
 
+### Gradle
+
 **Step 1.** Add the JitPack repository to your build file.
-Add it in your root build.gradle at the end of repositories:
+Add it in your root `build.gradle`/`setting.gradle` at the end of repositories:
 
 ```groovy
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-    }
+   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+   repositories {
+      mavenCentral()
+      maven { url 'https://jitpack.io' }
+   }
 }
 ```
 
-**Step 2.** Add the dependency
+**Step 2.** Add the dependency to your module's `build.gradle`:
 ```groovy
 dependencies {
    implementation 'com.github.kinescope:kotlin-kinescope-player:$kinescopeVideoPlayerVersion'
 }
 ```
 
+### AAR
+
+You can also add the SDK using an `.arr` file:
+
+**Step 1.** Download the `kotlin-kinescope-player-release.aar` file located at the root of this repository.
+
+**Step 2.** Place the `kotlin-kinescope-player-release.aar` file in the `<YOUR_MODULE>/libs` directory.
+If your module does not have a `libs` directory, simply add it to your module at the same level as the `src` directory.
+
+**Step 3.** Add this line to the module's `build.gradle` file:
+```groovy
+implementation fileTree(dir: "libs", include: ["*.aar"])
+```
 ## Usage
 
 ### Initialization
@@ -41,9 +56,9 @@ val apiHelper: KinescopeApiHelper = KinescopeApiHelperImpl(RetrofitBuilder.getKi
 ```xml
 
 <io.kinescope.sdk.view.KinescopePlayerView android:id="@+id/kinescope_player"
-    android:layout_width="match_parent" android:layout_height="260dp"
-    app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintEnd_toEndOf="parent" />
+        android:layout_width="match_parent" android:layout_height="260dp"
+        app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 ```
 
 2. Initialize `KinescopeVideoPlayer` instance.
@@ -75,37 +90,37 @@ For fullscreen feature usage switching player to another view should be implemen
 ```xml
 
 <activity android:configChanges="orientation|screenSize|screenLayout|layoutDirection"
-    android:name=".YourActivity" />
+        android:name=".YourActivity" />
 ```
 
 2. Add logic to change target view for player and change flags to make this view fullscreen
 
 ```kotlin
-private fun setFullscreen(fullscreen: Boolean) { 
-    if (fullscreen) { 
-        window.setFlags(
-           WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-           WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
-        KinescopePlayerView.switchTargetView(playerView, fullscreenPlayerView, kinescopePlayer)  
-  
-    } else {  
-        window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)  
-       
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {  
-            window.decorView.systemUiVisibility = 
-               (View.SYSTEM_UI_FLAG_FULLSCREEN 
-                       and View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY 
-                       and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)  
-        } else { 
-            window.decorView.systemUiVisibility = 
-               (View.SYSTEM_UI_FLAG_FULLSCREEN 
-                       and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) 
-        }  
-  
-        KinescopePlayerView.switchTargetView(fullscreenPlayerView, playerView, kinescopePlayer)  
-    }  
+private fun setFullscreen(fullscreen: Boolean) {
+   if (fullscreen) {
+      window.setFlags(
+         WindowManager.LayoutParams.FLAG_FULLSCREEN,
+         WindowManager.LayoutParams.FLAG_FULLSCREEN
+      )
+      window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+      KinescopePlayerView.switchTargetView(playerView, fullscreenPlayerView, kinescopePlayer)
+
+   } else {
+      window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+         window.decorView.systemUiVisibility =
+            (View.SYSTEM_UI_FLAG_FULLSCREEN
+                    and View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+      } else {
+         window.decorView.systemUiVisibility =
+            (View.SYSTEM_UI_FLAG_FULLSCREEN
+                    and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+      }
+
+      KinescopePlayerView.switchTargetView(fullscreenPlayerView, playerView, kinescopePlayer)
+   }
 }
 ```
 
