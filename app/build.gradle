@@ -51,8 +51,8 @@ android {
 }
 
 dependencies {
+    implementation project(path: ':kotlin-kinescope-player')
     //implementation project (path: ':io.kinescope.sdk')
-    implementation project(path: ':Kinescope Player SDK')
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
