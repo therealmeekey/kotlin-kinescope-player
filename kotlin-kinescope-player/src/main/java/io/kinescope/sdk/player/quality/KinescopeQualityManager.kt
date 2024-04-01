@@ -18,33 +18,26 @@ class KinescopeQualityManager(
     var variants: List<KinescopeQualityVariantUi> = emptyList()
         private set
 
-    private var videoHeight = 0
+    private var selectedVariantId = 0
 
     private var variantOverrides = emptyList<KinescopeQualityVariant>()
 
     val selectedVariant: KinescopeQualityVariantUi
         get() = variants.find { variant -> variant.isSelected }
             ?: KinescopeQualityVariantUi(
-                id = videoHeight,
+                id = selectedVariantId,
                 name = String.EMPTY,
                 isSelected = true
             )
 
     fun updateVariants(variants: List<KinescopeQualityVariant>) {
         variantOverrides = variants
-        this.variants = variants
-            .sortedBy { variant -> variant.id }
-            .map { variant ->
-                KinescopeQualityVariantUi(
-                    id = variant.id,
-                    name = context.getString(R.string.settings_quality_variant, variant.id.toString()),
-                    isSelected = variant.id == videoHeight,
-                )
-            }
+        updateUiVariants(variants)
     }
 
-    fun updateVideoHeight(height: Int) {
-        videoHeight = height
+    fun setSelectedVariantId(id: Int) {
+        selectedVariantId = id
+        updateUiVariants(variantOverrides)
     }
 
     fun setVariant(id: Int) {
@@ -69,5 +62,17 @@ class KinescopeQualityManager(
                 }
             false
         }
+    }
+
+    private fun updateUiVariants(variants: List<KinescopeQualityVariant>) {
+        this.variants = variants
+            .sortedBy { variant -> variant.id }
+            .map { variant ->
+                KinescopeQualityVariantUi(
+                    id = variant.id,
+                    name = context.getString(R.string.settings_quality_variant, variant.id.toString()),
+                    isSelected = variant.id == selectedVariantId,
+                )
+            }
     }
 }
