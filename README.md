@@ -6,7 +6,7 @@
 ### Gradle
 
 **Step 1.** Add the JitPack repository to your build file.
-Add it in your root `build.gradle`/`setting.gradle` at the end of repositories:
+Add it in your root `build.gradle`/`setting.gradle` file at the end of repositories:
 
 ```groovy
 dependencyResolutionManagement {
@@ -18,10 +18,10 @@ dependencyResolutionManagement {
 }
 ```
 
-**Step 2.** Add the dependency to your module's `build.gradle`:
+**Step 2.** Add the dependency to your module's `build.gradle` file. Replace `<LATEST_VERSION>` with the current version (can be found in the JitPack badge located at the top of this description):
 ```groovy
 dependencies {
-   implementation 'com.github.kinescope:kotlin-kinescope-player:$kinescopeVideoPlayerVersion'
+   implementation 'com.github.kinescope:kotlin-kinescope-player:<LATEST_VERSION>'
 }
 ```
 
@@ -36,7 +36,9 @@ If your module does not have a `libs` directory, simply add it to your module at
 
 **Step 3.** Add this line to the module's `build.gradle` file:
 ```groovy
-implementation fileTree(dir: "libs", include: ["*.aar"])
+dependencies {
+   implementation fileTree(dir: "libs", include: ["*.aar"])
+}
 ```
 ## Usage
 
