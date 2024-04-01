@@ -44,7 +44,6 @@ class KinescopeQualityManager(
     }
 
     fun updateVideoHeight(height: Int) {
-        println("QQQ:: video height: $height; is auto: $isAutoQuality")
         videoHeight = height
     }
 
