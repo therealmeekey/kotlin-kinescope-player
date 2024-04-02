@@ -35,12 +35,8 @@ class KinescopeQualityManager(
         updateUiVariants(variants)
     }
 
-    fun setSelectedVariantId(id: Int) {
-        selectedVariantId = id
-        updateUiVariants(variantOverrides)
-    }
-
     fun setVariant(id: Int) {
+        selectedVariantId = id
         isAutoQuality = if (id == KinescopeQualityVariant.QUALITY_VARIANT_AUTO_ID) {
             trackSelector.parameters =
                 trackSelector.parameters
@@ -62,6 +58,8 @@ class KinescopeQualityManager(
                 }
             false
         }
+
+        updateUiVariants(variantOverrides)
     }
 
     private fun updateUiVariants(variants: List<KinescopeQualityVariant>) {

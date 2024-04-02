@@ -1,18 +1,14 @@
-package io.kinescope.sdk.player.extensions
+package io.kinescope.sdk.extensions
 
-import android.media.AudioManager
 import androidx.media3.exoplayer.ExoPlayer
 import io.kinescope.sdk.analytics.KinescopeAnalyticsArgs
 import kotlin.math.roundToInt
 
 fun ExoPlayer?.getAnalyticsArguments(
-    audioManager: AudioManager,
+    volume: Int,
     isFullscreen: Boolean,
 ): KinescopeAnalyticsArgs {
     return this?.let {
-        val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        val volume = 100 * currentVolume / maxVolume
         val isMuted = volume == 0
 
         KinescopeAnalyticsArgs(

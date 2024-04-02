@@ -39,11 +39,12 @@ import androidx.media3.ui.TimeBar
 import com.squareup.picasso.Picasso
 import io.kinescope.sdk.R
 import io.kinescope.sdk.analytics.KinescopeAnalyticsManager
+import io.kinescope.sdk.extensions.currentVolumeInPercent
 import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopeVideoPlayer
-import io.kinescope.sdk.player.extensions.getAnalyticsArguments
+import io.kinescope.sdk.extensions.getAnalyticsArguments
 import io.kinescope.sdk.player.quality.KinescopeQualityManager
 import io.kinescope.sdk.player.quality.KinescopeQualityVariant
 import io.kinescope.sdk.player.quality.getQualityVariantsList
@@ -509,7 +510,6 @@ class KinescopePlayerView(
                 allChildren.forEach { child ->
                     child.setOnMenuItemClickListener { item ->
                         qualityManager?.setVariant(id = item.itemId)
-                        qualityManager?.setSelectedVariantId(id = item.itemId)
                         true
                     }
                 }
@@ -878,7 +878,7 @@ class KinescopePlayerView(
 
     private fun getAnalyticsArguments() =
         kinescopePlayer?.exoPlayer.getAnalyticsArguments(
-            audioManager = audioManager,
+            volume = audioManager.currentVolumeInPercent,
             isFullscreen = isVideoFullscreen,
         )
 
