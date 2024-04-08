@@ -38,12 +38,13 @@ import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
 import com.squareup.picasso.Picasso
 import io.kinescope.sdk.R
-import io.kinescope.sdk.analytics.KinescopeAnalyticsArgs
 import io.kinescope.sdk.analytics.KinescopeAnalyticsManager
+import io.kinescope.sdk.extensions.currentVolumeInPercent
 import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopeVideoPlayer
+import io.kinescope.sdk.extensions.getAnalyticsArguments
 import io.kinescope.sdk.player.quality.KinescopeQualityManager
 import io.kinescope.sdk.player.quality.KinescopeQualityVariant
 import io.kinescope.sdk.player.quality.getQualityVariantsList
@@ -53,7 +54,6 @@ import io.kinescope.sdk.utils.dip
 import io.kinescope.sdk.utils.formatLiveStartDate
 import me.saket.cascade.CascadePopupMenu
 import me.saket.cascade.allChildren
-import kotlin.math.roundToInt
 
 
 @UnstableApi
@@ -258,10 +258,6 @@ class KinescopePlayerView(
 
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             super.onVideoSizeChanged(videoSize)
-            qualityManager?.updateVideoHeight(
-                height = videoSize.height
-            )
-
             if (videoSize.height != 0) {
                 getAnalyticsArguments().let { args ->
                     when (qualityManager?.isAutoQuality) {
@@ -881,29 +877,10 @@ class KinescopePlayerView(
     }
 
     private fun getAnalyticsArguments() =
-        kinescopePlayer?.exoPlayer?.let { player ->
-            player.playbackParameters.speed
-            player.volume
-            player.isDeviceMuted
-            isVideoFullscreen
-            player.bufferedPosition
-
-            val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-            val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-            val volume = 100 * currentVolume / maxVolume
-            val isMuted = volume == 0
-
-            KinescopeAnalyticsArgs(
-                duration = (player.duration.toFloat() / 1000f).roundToInt(),
-                rate = player.playbackParameters.speed,
-                volume = volume,
-                quality = player.videoSize.height.toString(),
-                isMuted = isMuted,
-                isFullScreen = isVideoFullscreen,
-                previewPosition = (player.bufferedPosition.toFloat() / 1000f).roundToInt(),
-                currentPosition = (player.currentPosition.toFloat() / 1000f).roundToInt(),
-            )
-        } ?: KinescopeAnalyticsArgs()
+        kinescopePlayer?.exoPlayer.getAnalyticsArguments(
+            volume = audioManager.currentVolumeInPercent,
+            isFullscreen = isVideoFullscreen,
+        )
 
     private fun getSpeedVariants(): List<KinescopeSpeedVariant> =
         listOf(

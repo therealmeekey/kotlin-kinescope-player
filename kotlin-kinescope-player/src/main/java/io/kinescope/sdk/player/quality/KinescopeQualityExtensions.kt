@@ -6,6 +6,13 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 
+private val TRACK_SUPPORTED_FORMATS =
+    listOf(
+        C.TRACK_TYPE_VIDEO,
+        C.TRACK_TYPE_AUDIO,
+        C.TRACK_TYPE_TEXT,
+    )
+
 @UnstableApi
 fun DefaultTrackSelector.getQualityVariantsList(): List<KinescopeQualityVariant> {
     val trackOverrideList = mutableListOf<KinescopeQualityVariant>()
@@ -52,12 +59,12 @@ fun DefaultTrackSelector.getQualityVariantsList(): List<KinescopeQualityVariant>
 @UnstableApi
 private fun isSupportedFormat(
     mappedTrackInfo: MappingTrackSelector.MappedTrackInfo?,
-    rendererIndex: Int
+    rendererIndex: Int,
 ): Boolean {
     val trackGroupArray = mappedTrackInfo?.getTrackGroups(rendererIndex)
     return if (trackGroupArray?.length == 0) {
         false
-    } else mappedTrackInfo?.getRendererType(rendererIndex) == C.TRACK_TYPE_VIDEO || mappedTrackInfo?.getRendererType(
-        rendererIndex
-    ) == C.TRACK_TYPE_AUDIO || mappedTrackInfo?.getRendererType(rendererIndex) == C.TRACK_TYPE_TEXT
+    } else {
+        mappedTrackInfo?.getRendererType(rendererIndex) in TRACK_SUPPORTED_FORMATS
+    }
 }
