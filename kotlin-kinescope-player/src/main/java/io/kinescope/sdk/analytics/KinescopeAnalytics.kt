@@ -16,6 +16,7 @@ import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.network.AnalyticsBuilder
 import io.kinescope.sdk.utils.currentTimestamp
+import io.kinescope.sdk.utils.kinescopeAnalyticsApiEndpoint
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -31,6 +32,9 @@ class KinescopeAnalytics(
 
     private val playerId = analyticsPlayerIdStorage.getPlayerId()
     private val viewId = UUID.randomUUID().toString()
+
+    var metricUrl: String? = null
+        get() = field.takeIf { !it.isNullOrEmpty() } ?: kinescopeAnalyticsApiEndpoint
 
     fun sendEvent(
         event: Event,
@@ -89,7 +93,7 @@ class KinescopeAnalytics(
             message = "Analytics event. ${body.toStringData()}"
         )
 
-        analyticsApi.sendEvent(body = body)
+        analyticsApi.sendEvent(url = metricUrl as String, body = body)
             .enqueue(object : Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) =
                     KinescopeLogger.log(
