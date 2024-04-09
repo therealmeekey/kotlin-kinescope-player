@@ -406,8 +406,11 @@ class KinescopePlayerView(
         }
 
         kinescopePlayer?.exoPlayer?.addListener(componentListener)
-        kinescopePlayer?.onSourceChanged = { source ->
-            analyticsManager.sourceChanged(newSource = source)
+        kinescopePlayer?.onSourceChanged = { source, metricUrl ->
+            analyticsManager.setSource(
+                source = source,
+                metricUrl = metricUrl,
+            )
         }
         exoPlayerView?.player = kinescopePlayer?.exoPlayer
         applyKinescopePlayerOptions()

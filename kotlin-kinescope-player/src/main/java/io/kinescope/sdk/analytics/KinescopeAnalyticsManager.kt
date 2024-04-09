@@ -127,8 +127,10 @@ class KinescopeAnalyticsManager(
             args = args,
         )
 
-    fun sourceChanged(newSource: String) {
-        source = newSource
+    fun setSource(source: String, metricUrl: String?) {
+        this.source = source
+        analytics.metricUrl = metricUrl
+
         eventPlaybackLastSentSecondsAgo = 0
         eventViewLastSentSecondsAgo = 0
         eventViewSent = false

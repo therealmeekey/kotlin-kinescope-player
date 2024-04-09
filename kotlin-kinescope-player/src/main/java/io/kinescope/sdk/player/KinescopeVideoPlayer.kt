@@ -33,7 +33,7 @@ class KinescopeVideoPlayer(
     constructor(context: Context) : this(context, KinescopePlayerOptions())
 
     var exoPlayer: ExoPlayer? = null
-    var onSourceChanged: ((source: String) -> Unit)? = null
+    var onSourceChanged: ((source: String, metricUrl: String?) -> Unit)? = null
 
     private val USER_AGENT = "KinescopeAndroidVideoKotlin"
     private var currentKinescopeVideo: KinescopeVideo? = null
@@ -116,7 +116,10 @@ class KinescopeVideoPlayer(
         }
 
         currentKinescopeVideo = kinescopeVideo
-        onSourceChanged?.invoke(source)
+        onSourceChanged?.invoke(
+            source,
+            kinescopeVideo.sdk?.metricUrl
+        )
 
         exoPlayer?.setMediaSource(mediaSource)
         exoPlayer?.playWhenReady = false
