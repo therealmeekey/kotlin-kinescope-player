@@ -8,9 +8,11 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import androidx.core.view.isVisible
+import androidx.media3.common.util.UnstableApi
 import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.view.KinescopePlayerView
 
+@UnstableApi
 class SubtitlesActivity : AppCompatActivity() {
     private var isVideoFullscreen = false
 
@@ -21,9 +23,9 @@ class SubtitlesActivity : AppCompatActivity() {
         kinescopePlayer = KinescopeVideoPlayer(this)
     }
 
-    lateinit var playerView:KinescopePlayerView
-    lateinit var fullscreenPlayerView:KinescopePlayerView
-    lateinit var kinescopePlayer :KinescopeVideoPlayer
+    private lateinit var playerView: KinescopePlayerView
+    private lateinit var fullscreenPlayerView: KinescopePlayerView
+    private lateinit var kinescopePlayer: KinescopeVideoPlayer
 
 
     override fun onStart() {
@@ -34,11 +36,11 @@ class SubtitlesActivity : AppCompatActivity() {
         playerView.setIsFullscreen(false)
         fullscreenPlayerView.setIsFullscreen(true)
         playerView.setPlayer(kinescopePlayer)
-        playerView.onFullscreenButtonCallback = {toggleFullscreen()}
-        fullscreenPlayerView.onFullscreenButtonCallback = {toggleFullscreen()}
+        playerView.onFullscreenButtonCallback = { toggleFullscreen() }
+        fullscreenPlayerView.onFullscreenButtonCallback = { toggleFullscreen() }
 
         kinescopePlayer.loadVideo("eNWM8F6wbVTVa8fBeR66y6", onSuccess = {
-            if(it != null) {
+            if (it != null) {
                 kinescopePlayer.play()
             }
         })
