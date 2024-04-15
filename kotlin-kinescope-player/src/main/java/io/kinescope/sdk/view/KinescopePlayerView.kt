@@ -7,8 +7,6 @@ import android.media.AudioManager
 import android.os.Looper
 import android.util.AttributeSet
 import android.view.GestureDetector
-import android.view.Gravity
-import android.view.Menu
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
@@ -21,7 +19,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -36,24 +33,20 @@ import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerControlView
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
-import com.squareup.picasso.Picasso
+import com.bumptech.glide.Glide
 import io.kinescope.sdk.R
 import io.kinescope.sdk.analytics.KinescopeAnalyticsManager
 import io.kinescope.sdk.extensions.currentVolumeInPercent
+import io.kinescope.sdk.extensions.getAnalyticsArguments
 import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopeVideoPlayer
-import io.kinescope.sdk.extensions.getAnalyticsArguments
 import io.kinescope.sdk.player.quality.KinescopeQualityManager
-import io.kinescope.sdk.player.quality.KinescopeQualityVariant
 import io.kinescope.sdk.player.quality.getQualityVariantsList
 import io.kinescope.sdk.player.speed.KinescopeSpeedVariant
 import io.kinescope.sdk.utils.animateRotation
-import io.kinescope.sdk.utils.dip
 import io.kinescope.sdk.utils.formatLiveStartDate
-import me.saket.cascade.CascadePopupMenu
-import me.saket.cascade.allChildren
 
 
 @UnstableApi
@@ -338,7 +331,7 @@ class KinescopePlayerView(
             } else if (fullscreenButton === view) {
                 onFullscreenButtonCallback?.invoke()
             } else if (optionsButton === view) {
-                displaySettingsWindow()
+
             } else if (subtitlesButton === view) {
                 //TODO: Subtitles menu
             } else if (attachmentsButton === view) {
@@ -442,10 +435,10 @@ class KinescopePlayerView(
         with(posterView) {
             isVisible = true
             posterUrl?.let {
-                Picasso.get()
+                Glide.with(context)
                     .load(posterUrl)
-                    .placeholder(ContextCompat.getDrawable(context, R.drawable.default_poster)!!)
-                    .into(this)
+                    .placeholder(R.drawable.default_poster)
+                    .into(this as ImageView)
             }
         }
     }
@@ -471,71 +464,6 @@ class KinescopePlayerView(
     fun setIsFullscreen(value: Boolean) {
         isVideoFullscreen = value
         updateFullscreenButton()
-    }
-
-    private fun displaySettingsWindow() {
-        val popup = CascadePopupMenu(
-            fixedWidth = context.dip(250),
-            context = context,
-            anchor = optionsButton!!,
-            gravity = Gravity.TOP,
-            styler = CascadePopupMenu.Styler(
-                background = {
-                    AppCompatResources.getDrawable(
-                        context,
-                        R.drawable.bg_options_rect
-                    )
-                },
-                menuItem = {
-                    it.titleView.setTextColor(Color.WHITE)
-                    it.subMenuArrowView.updatePadding(right = 56)
-                },
-                menuTitle = {
-                    it.titleView.setTextColor(Color.WHITE)
-                    it.titleView.compoundDrawablePadding = 48
-                    it.titleView.updatePadding(left = 36)
-                },
-            ),
-        )
-
-        popup.menu.addSubMenu(context.getString(R.string.settings_quality))
-            .setIcon(R.drawable.ic_option_quality)
-            .apply {
-                qualityManager?.variants.orEmpty().forEach { variant ->
-                    add(Menu.NONE, variant.id, Menu.NONE, variant.name)
-                }
-                add(
-                    Menu.NONE,
-                    KinescopeQualityVariant.QUALITY_VARIANT_AUTO_ID,
-                    Menu.NONE,
-                    context.getString(R.string.settings_quality_variant_auto)
-                )
-                allChildren.forEach { child ->
-                    child.setOnMenuItemClickListener { item ->
-                        qualityManager?.setVariant(id = item.itemId)
-                        true
-                    }
-                }
-            }
-
-        popup.menu.addSubMenu(context.getString(R.string.settings_speed))
-            .setIcon(R.drawable.ic_option_playback_speed)
-            .apply {
-                val speedVariants = getSpeedVariants()
-                speedVariants.forEachIndexed { index, variant ->
-                    add(Menu.NONE, index, Menu.NONE, variant.name)
-                }
-                allChildren.forEach { child ->
-                    child.setOnMenuItemClickListener { item ->
-                        kinescopePlayer?.setPlaybackSpeed(speedVariants[item.itemId].speed)
-                        getAnalyticsArguments().let { args ->
-                            analyticsManager.speedChanged(args = args)
-                        }
-                        true
-                    }
-                }
-            }
-        popup.show()
     }
 
     private fun updateBuffering() {
@@ -580,7 +508,7 @@ class KinescopePlayerView(
             seekView?.isVisible = options.showSeekBar
             subtitlesButton?.isVisible = options.showSubtitlesButton
             attachmentsButton?.isVisible = options.showAttachments
-            optionsButton?.isVisible = options.showOptionsButton
+            optionsButton?.isVisible = false
         }
     }
 

@@ -6,5 +6,5 @@ install:
   - FILE="-Dfile=kotlin-kinescope-player-release.aar"
   - GROUP_ID="-DgroupId=com.github.kinescope"
   - ARTIFACT_ID="-DartifactId=kotlin-kinescope-player"
-  - VERSION="-Dversion=0.0.1"
+  - VERSION="-Dversion=0.0.2"
   - mvn install:install-file $FILE $GROUP_ID $ARTIFACT_ID $VERSION -Dpackaging=aar -DgeneratePom=true
