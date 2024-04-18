@@ -13,7 +13,7 @@ fun ExoPlayer?.getAnalyticsArguments(
 
         KinescopeAnalyticsArgs(
             duration = (duration.toFloat() / 1000f).roundToInt(),
-            rate = playbackParameters.speed,
+            rate = playbackSpeed,
             volume = volume,
             quality = videoSize.height.toString(),
             isMuted = isMuted,
@@ -23,3 +23,6 @@ fun ExoPlayer?.getAnalyticsArguments(
         )
     } ?: KinescopeAnalyticsArgs()
 }
+
+val ExoPlayer.playbackSpeed
+    get() = playbackParameters.speed

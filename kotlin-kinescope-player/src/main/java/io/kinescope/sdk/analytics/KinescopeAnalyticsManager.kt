@@ -1,7 +1,7 @@
 package io.kinescope.sdk.analytics
 
 import android.content.Context
-import io.kinescope.sdk.utils.EMPTY
+import io.kinescope.sdk.extensions.EMPTY
 import io.kinescope.sdk.utils.currentTimestamp
 import kotlin.math.roundToInt
 
