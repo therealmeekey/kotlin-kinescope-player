@@ -1,7 +1,9 @@
 package io.kinescope.demo.live
 
 import android.content.pm.ActivityInfo
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
@@ -50,6 +52,46 @@ class LiveActivity : AppCompatActivity() {
         watchLiveBtnView.setOnClickListener {
             tryLoadVideo(watchLiveIdInputView.text.toString())
         }
+
+        with(kinescopePlayerView) {
+            showCustomButton(
+                iconRes = R.drawable.ic_chromecats,
+                onClick = {}
+            )
+            setColors(
+                buttonColor = Color.YELLOW
+            )
+            setAnalyticsCallback { event, data ->
+                println("Analytics event fired! Event: $event; data: $data")
+            }
+        }
+        with(kinescopePlayerFullscreenView) {
+            showCustomButton(
+                iconRes = R.drawable.ic_chromecats,
+                onClick = {}
+            )
+            setColors(
+                buttonColor = Color.YELLOW
+            )
+            setAnalyticsCallback { event, data ->
+                println("Analytics event fired! Event: $event; data: $data")
+            }
+        }
+
+        Handler().postDelayed({
+            with(kinescopePlayerView) {
+                hideCustomButton()
+                setColors(
+                    buttonColor = Color.GREEN
+                )
+            }
+            with(kinescopePlayerFullscreenView) {
+                hideCustomButton()
+                setColors(
+                    buttonColor = Color.GREEN
+                )
+            }
+        }, 15000)
     }
 
     override fun onStop() {
@@ -62,11 +104,19 @@ class LiveActivity : AppCompatActivity() {
 
         watchLiveContainerView.isVisible = false
         kinescopePlayer.loadVideo(liveId, { video ->
-            if (video?.isLive == true) {
-                kinescopePlayerView.enableLiveState(
-                    posterUrl = video.poster?.url,
-                    startDate = video.live?.startsAt,
-                )
+            video?.let { data ->
+                data.poster?.url?.let {
+                    kinescopePlayerView.showPoster(
+                        url = it,
+                        onLoadFinished = { println("Poster loaded") }
+                    )
+                }
+                if (data.isLive) {
+                    kinescopePlayerView.setLiveState()
+                    data.live?.startsAt?.let {
+                        kinescopePlayerView.showLiveStartDate(startDate = it)
+                    }
+                }
             }
             kinescopePlayer.play()
         }) {
@@ -131,6 +181,6 @@ class LiveActivity : AppCompatActivity() {
         /**
          * Used if the live ID field value is empty
          */
-        private const val DEFAULT_LIVE_ID = "sjtLaqkNAgfvC7LdRbdvBd"
+        private const val DEFAULT_LIVE_ID = "8KoGhEMtQY7MQjyNqhfGsr"
     }
 }

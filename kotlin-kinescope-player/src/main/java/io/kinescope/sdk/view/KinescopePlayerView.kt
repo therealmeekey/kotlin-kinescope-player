@@ -2,6 +2,7 @@ package io.kinescope.sdk.view
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.Typeface
 import android.media.AudioManager
 import android.os.Looper
@@ -9,15 +10,20 @@ import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.ColorInt
+import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
@@ -41,6 +47,7 @@ import io.kinescope.sdk.extensions.getAnalyticsArguments
 import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
+import io.kinescope.sdk.player.KinescopeGlideListener
 import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.player.quality.KinescopeQualityManager
 import io.kinescope.sdk.player.quality.getQualityVariantsList
@@ -153,12 +160,15 @@ class KinescopePlayerView(
     private var positionView: TextView? = null
     private var durationView: TextView? = null
     private var timeSeparatorView: View? = null
-    private var timeBar: TimeBar? = null
-    private var playPauseButton: View? = null
+    private var timeBar: KinescopeTimeBar? = null
+
+    private var buttonsContainer: ViewGroup? = null
+    private var playPauseButton: ImageView? = null
     private var optionsButton: View? = null
     private var fullscreenButton: View? = null
     private var subtitlesButton: View? = null
     private var attachmentsButton: View? = null
+    private var customButton: ImageButton? = null
 
     private var titleView: TextView? = null
     private var authorView: TextView? = null
@@ -186,8 +196,12 @@ class KinescopePlayerView(
             field = value
         }
 
+    private var analyticsCallback: ((event: String, data: String) -> Unit)? = null
     private var qualityManager: KinescopeQualityManager? = null
-    private var analyticsManager = KinescopeAnalyticsManager(context)
+    private var analyticsManager = KinescopeAnalyticsManager(
+        context = context,
+        onEvent = { event, data -> analyticsCallback?.invoke(event, data) }
+    )
 
     private val updateProgressRunnable = Runnable {
         updateProgress()
@@ -218,15 +232,23 @@ class KinescopePlayerView(
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
-
             getAnalyticsArguments().let { args ->
                 when (playbackState) {
-                    Player.STATE_BUFFERING -> analyticsManager.buffering()
+                    Player.STATE_BUFFERING -> {
+                        analyticsManager.buffering()
+
+                        if (!isLiveState) {
+                            hidePoster()
+                        }
+                    }
 
                     Player.STATE_READY -> {
-                        posterView?.isVisible = false
-                        liveStartDateContainerView?.isVisible = false
                         analyticsManager.ready(args = args)
+
+                        if (isLiveState) {
+                            hidePoster()
+                            hideLiveStartDate()
+                        }
                     }
 
                     Player.STATE_ENDED -> analyticsManager.end(args = args)
@@ -358,15 +380,19 @@ class KinescopePlayerView(
         controlView = findViewById(R.id.view_control)
         seekView = findViewById(R.id.kinescope_seek_view)
 
-        timeBar = controlView?.findViewById<KinescopeTimeBar>(R.id.kinescope_progress)
+        timeBar = controlView?.findViewById(R.id.kinescope_progress)
         positionView = controlView?.findViewById(R.id.kinescope_position)
         durationView = controlView?.findViewById(R.id.kinescope_duration)
         timeSeparatorView = controlView?.findViewById(R.id.time_separator_view)
+
+        buttonsContainer = controlView?.findViewById(R.id.buttons_container_ll)
         playPauseButton = controlView?.findViewById(R.id.kinescope_play_pause)
         optionsButton = controlView?.findViewById(R.id.kinescope_settings)
         fullscreenButton = controlView?.findViewById(R.id.kinescope_fullscreen)
         subtitlesButton = controlView?.findViewById(R.id.kinescope_btn_subtitles)
         attachmentsButton = controlView?.findViewById(R.id.kinescope_btn_attachments)
+        customButton = controlView?.findViewById(R.id.custom_btn)
+
         titleView = controlView?.findViewById(R.id.kinescope_title)
         authorView = controlView?.findViewById(R.id.kinescope_author)
 
@@ -383,9 +409,7 @@ class KinescopePlayerView(
     }
 
     /**
-     * Attaches Kinescope player and loads KinescopePlayerOptions
-     * to this KinescopePlayerView
-     *
+     * Attaches Kinescope player and loads KinescopePlayerOptions to this KinescopePlayerView
      */
     fun setPlayer(kinescopePlayer: KinescopeVideoPlayer?) {
         Assertions.checkState(Looper.myLooper() == Looper.getMainLooper())
@@ -411,9 +435,42 @@ class KinescopePlayerView(
         updateAll()
     }
 
-    fun enableLiveState(
-        posterUrl: String? = null,
-        startDate: String? = null
+    /**
+     * Changes the player colors.
+     * @param buttonColor Color of the buttons.
+     * @param scrubberColor Color of the progress bar scrubber.
+     * @param progressBarColor Color of the progress bar.
+     * @param playedColor Color of the played time.
+     * @param bufferedColor Color of the buffered part.
+     */
+    fun setColors(
+        @ColorInt buttonColor: Int? = null,
+        @ColorInt scrubberColor: Int? = null,
+        @ColorInt progressBarColor: Int? = null,
+        @ColorInt playedColor: Int? = null,
+        @ColorInt bufferedColor: Int? = null,
+    ) {
+        buttonColor?.let { color ->
+            playPauseButton?.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+            buttonsContainer?.children?.forEach {
+                if (it is ImageButton) {
+                    it.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+                }
+            }
+        }
+        timeBar?.let {
+            scrubberColor?.let { color -> it.setScrubberColor(color) }
+            progressBarColor?.let { color -> it.setUnplayedColor(color) }
+            playedColor?.let { color -> it.setPlayedColor(color) }
+            bufferedColor?.let { color -> it.setBufferedColor(color) }
+        }
+    }
+
+    /**
+     * Enables the live stream mode for the video player,
+     * making the progress bar infinitive and adding the Live badge.
+     */
+    fun setLiveState(
     ) {
         isLiveState = true
         isLiveSynced = true
@@ -422,25 +479,96 @@ class KinescopePlayerView(
         durationView?.isVisible = false
         timeSeparatorView?.isVisible = false
         liveDataView?.isVisible = true
+    }
 
-        startDate?.let { date ->
-            formatLiveStartDate(date)
-                .takeIf { date.isNotEmpty() }
+    /**
+     * Sets the poster image.
+     * Poster will be automatically hidden once the buffering started.
+     * For the live stream it will be hidden once the video is ready.
+     * @param url Image url
+     * @param placeholder Will be shown while image is loading.
+     * @param errorPlaceholder Will be shown if image loading failed.
+     * @param onLoadFinished Fired once image loading finished.
+     */
+    fun showPoster(
+        url: String,
+        @DrawableRes placeholder: Int = R.drawable.default_poster,
+        @DrawableRes errorPlaceholder: Int = R.drawable.default_poster,
+        onLoadFinished: ((isSuccess: Boolean) -> Unit)? = null,
+    ) {
+        posterView?.let {
+            it.isVisible = true
+            Glide.with(context)
+                .load(url)
+                .placeholder(placeholder)
+                .error(errorPlaceholder)
+                .addListener(KinescopeGlideListener { isSuccess ->
+                    onLoadFinished?.invoke(isSuccess)
+                })
+                .into(it)
+        }
+    }
+
+    /**
+     * Hides the poster image. If video buffering has started, calling this method will do nothing.
+     */
+    fun hidePoster() {
+        posterView?.isVisible = false
+    }
+
+    /**
+     * Shows the live stream starting date. This method should be called only after [setLiveState].
+     * @param startDate ISO8601 date string
+     */
+    fun showLiveStartDate(startDate: String) {
+        if (isLiveState) {
+            formatLiveStartDate(startDate)
+                .takeIf { startDate.isNotEmpty() }
                 ?.let { formattedDate ->
                     liveStartDateContainerView?.isVisible = true
                     liveStartDateTextView?.text = formattedDate
                 }
         }
+    }
 
-        with(posterView) {
-            isVisible = true
-            posterUrl?.let {
-                Glide.with(context)
-                    .load(posterUrl)
-                    .placeholder(R.drawable.default_poster)
-                    .into(this as ImageView)
-            }
-        }
+    /**
+     * Hides the live stream starting date. If video buffering has started, calling this method will do nothing.
+     */
+    fun hideLiveStartDate() {
+        liveStartDateContainerView?.isVisible = false
+    }
+
+    /**
+     * Adds the custom button to the player.
+     * This method must be called before the [setColors].
+     * @param iconRes Icon resource for the button
+     * @param onClick On click callback
+     */
+    fun showCustomButton(
+        @DrawableRes iconRes: Int,
+        onClick: () -> Unit,
+    ) = customButton?.apply {
+        isVisible = true
+        setImageResource(iconRes)
+        setOnClickListener { onClick() }
+    }
+
+    /**
+     * Hides custom button.
+     */
+    fun hideCustomButton() {
+        customButton?.isVisible = false
+    }
+
+    /**
+     * Called every time analytics event fired.
+     * @param event Analytics event name
+     * @param data Analytics event string data
+     */
+    fun setAnalyticsCallback(
+        callback: (event: String, data: String) -> Unit
+    ) {
+        analyticsCallback = callback
     }
 
     private fun getVideo(): KinescopeVideo? = kinescopePlayer?.getVideo()
@@ -550,7 +678,7 @@ class KinescopePlayerView(
                     .setImageDrawable(
                         AppCompatResources.getDrawable(
                             context,
-                            R.drawable.ic_fullscreen_disable
+                            R.drawable.ic_fullscreen_exit
                         )
                     )
             } else {
@@ -585,6 +713,15 @@ class KinescopePlayerView(
         optionsButton?.setOnClickListener(componentListener)
         fullscreenButton?.setOnClickListener(componentListener)
         subtitlesButton?.setOnClickListener(componentListener)
+
+        liveDataView?.setOnClickListener {
+            if (!isLiveSynced) {
+                kinescopePlayer?.exoPlayer?.let {
+                    it.seekTo(it.duration)
+                    isLiveSynced = true
+                }
+            }
+        }
     }
 
     private fun updateTimeline() {

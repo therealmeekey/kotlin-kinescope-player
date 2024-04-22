@@ -42,7 +42,7 @@ class KinescopeAnalytics(
         source: String,
         watchedDuration: Int,
         args: KinescopeAnalyticsArgs
-    ) {
+    ): String {
         val body = Native.newBuilder()
             .setEvent(event.value)
             .setValue(value)
@@ -107,6 +107,8 @@ class KinescopeAnalytics(
                         message = "Event ${event.value} failed to send"
                     )
             })
+
+        return body.toString()
     }
 
     enum class Event(val value: String) {

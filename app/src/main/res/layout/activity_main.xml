@@ -13,7 +13,7 @@
         android:id="@+id/btn_playlist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:backgroundTint="@color/kinescope_primary_color"
         android:text="Playlist test"
         android:textColor="@color/white"
         android:textSize="24sp" />
@@ -23,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:backgroundTint="@color/kinescope_primary_color"
         android:text="Subtitles test"
         android:textColor="@color/white"
         android:textSize="24sp" />
@@ -44,7 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:backgroundTint="@color/kinescope_primary_color"
         android:text="Custom UI test"
         android:textColor="@color/white"
         android:textSize="24sp" />
@@ -54,7 +54,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:backgroundTint="@color/kinescope_progressbar_played_color"
+        android:backgroundTint="@color/kinescope_primary_color"
         android:text="Live test"
         android:textColor="@color/white"
         android:textSize="24sp" />
