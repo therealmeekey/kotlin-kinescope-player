@@ -558,11 +558,12 @@ class KinescopePlayerView(
         onLoadFinished: ((isSuccess: Boolean) -> Unit)? = null,
     ) {
         with(kinescopePlayer?.exoPlayer?.playbackState) {
-            if (this == Player.STATE_BUFFERING || (isLiveState && this == Player.STATE_READY)) {
+            if ((!isLiveState && this == Player.STATE_BUFFERING) ||
+                (isLiveState && this == Player.STATE_READY)
+            ) {
                 return
             }
         }
-
         posterView?.let {
             it.isVisible = true
             Glide.with(context)
@@ -587,16 +588,25 @@ class KinescopePlayerView(
      * Shows the live stream starting date.
      * @param startDate ISO8601 date string
      */
-    fun showLiveStartDate(startDate: String) =
+    fun showLiveStartDate(startDate: String) {
+        with(kinescopePlayer?.exoPlayer?.playbackState) {
+            if ((!isLiveState && this == Player.STATE_BUFFERING) ||
+                (isLiveState && this == Player.STATE_READY)
+            ) {
+                return
+            }
+        }
         formatLiveStartDate(startDate)
             .takeIf { startDate.isNotEmpty() }
             ?.let { formattedDate ->
                 liveStartDateContainerView?.isVisible = true
                 liveStartDateTextView?.text = formattedDate
             }
+    }
 
     /**
-     * Hides the live stream starting date. If video buffering has started, calling this method will do nothing.
+     * Hides the live stream starting date.
+     * If video buffering has started, calling this method will do nothing.
      */
     fun hideLiveStartDate() {
         liveStartDateContainerView?.isVisible = false

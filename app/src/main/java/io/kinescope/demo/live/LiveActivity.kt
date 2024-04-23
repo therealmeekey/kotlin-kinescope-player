@@ -112,10 +112,10 @@ class LiveActivity : AppCompatActivity() {
                     )
                 }
                 if (data.isLive) {
-                    kinescopePlayerView.setLiveState()
                     data.live?.startsAt?.let {
                         kinescopePlayerView.showLiveStartDate(startDate = it)
                     }
+                    kinescopePlayerView.setLiveState()
                 }
             }
             kinescopePlayer.play()
@@ -181,6 +181,6 @@ class LiveActivity : AppCompatActivity() {
         /**
          * Used if the live ID field value is empty
          */
-        private const val DEFAULT_LIVE_ID = "8KoGhEMtQY7MQjyNqhfGsr"
+        private const val DEFAULT_LIVE_ID = "aLJgR9TJfe2EUBejpH5Fuo"
     }
 }
