@@ -16,8 +16,9 @@
     <color name="kinescope_live_not_synced_color">#52FFFFFF</color>
     <color name="kinescope_live_stream_start_bg_color">#CC222222</color>
 
-    <color name="kinescope_setting_item">#222222</color>
-    <color name="kinescope_setting_item_pressed">#333333</color>
+    <color name="kinescope_settings">#222222</color>
+    <color name="kinescope_settings_item">#222222</color>
+    <color name="kinescope_settings_item_pressed">#444444</color>
 
     <color name="white">#FFFFFF</color>
 

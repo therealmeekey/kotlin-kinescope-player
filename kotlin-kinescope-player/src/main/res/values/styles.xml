@@ -11,5 +11,40 @@
         <item name="android:popupElevation">0dp</item>
     </style>-->
 
+    <!--Regular text style-->
+    <style name="Regular" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+    </style>
 
+    <!---Regular 12-->
+    <style name="Regular.12">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="Regular.12.Gray">
+        <item name="android:textColor">@color/gray</item>
+    </style>
+
+    <!---Regular 14-->
+    <style name="Regular.14">
+        <item name="android:textSize">14dp</item>
+    </style>
+
+    <style name="Regular.14.White">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!--Bold text style-->
+    <style name="Bold" parent="TextAppearance.AppCompat">
+        <item name="fontFamily">@font/roboto_bold</item>
+    </style>
+
+    <!---Bold 14-->
+    <style name="Bold.14">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="Bold.14.White">
+        <item name="android:textColor">@color/white</item>
+    </style>
 </resources>

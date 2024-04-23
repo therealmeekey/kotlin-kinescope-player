@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/settings_menu_fl"
+    android:layout_width="300dp"
+    android:layout_height="match_parent"
+    android:layout_gravity="end"
+    android:background="@color/kinescope_settings"
+    android:translationX="300dp">
+
+    <LinearLayout
+        android:id="@+id/parameters_ll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingVertical="8dp" />
+
+    <LinearLayout
+        android:id="@+id/options_ll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/kinescope_settings"
+        android:orientation="vertical"
+        android:paddingVertical="8dp"
+        android:visibility="gone"
+        android:translationX="300dp">
+
+        <TextView
+            android:id="@+id/parameter_options_title_tv"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/sel_settings_item"
+            android:drawableStart="@drawable/ic_chevron_left"
+            android:drawablePadding="4dp"
+            android:gravity="center_vertical"
+            android:includeFontPadding="false"
+            android:textAppearance="@style/Bold.14.White"
+            tools:ignore="UseCompatTextViewDrawableXml"
+            tools:text="Quality" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/parameter_options_ll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </ScrollView>
+
+    </LinearLayout>
+
+</FrameLayout>

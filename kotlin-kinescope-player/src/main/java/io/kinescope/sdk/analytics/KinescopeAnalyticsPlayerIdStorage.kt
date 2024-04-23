@@ -1,7 +1,7 @@
 package io.kinescope.sdk.analytics
 
 import android.content.Context
-import io.kinescope.sdk.utils.EMPTY
+import io.kinescope.sdk.extensions.EMPTY
 import java.util.UUID
 
 class KinescopeAnalyticsPlayerIdStorage(

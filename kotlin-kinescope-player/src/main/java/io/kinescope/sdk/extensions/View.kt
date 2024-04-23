@@ -1,7 +1,5 @@
-package io.kinescope.sdk.utils
+package io.kinescope.sdk.extensions
 
-import android.content.Context
-import android.util.TypedValue
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
@@ -17,9 +15,4 @@ fun View.animateRotation() {
     rotate.repeatCount = Animation.INFINITE
     rotate.interpolator = LinearInterpolator()
     this.startAnimation(rotate)
-}
-
-internal fun Context.dip(dp: Int): Int {
-    val metrics = resources.displayMetrics
-    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), metrics).toInt()
 }

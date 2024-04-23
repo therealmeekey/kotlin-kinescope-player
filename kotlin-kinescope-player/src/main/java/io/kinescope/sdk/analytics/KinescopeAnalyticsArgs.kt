@@ -1,6 +1,6 @@
 package io.kinescope.sdk.analytics
 
-import io.kinescope.sdk.utils.EMPTY
+import io.kinescope.sdk.extensions.EMPTY
 
 data class KinescopeAnalyticsArgs(
     val duration: Int = 0,

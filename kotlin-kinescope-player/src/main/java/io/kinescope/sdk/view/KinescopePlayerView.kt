@@ -42,17 +42,21 @@ import androidx.media3.ui.TimeBar
 import com.bumptech.glide.Glide
 import io.kinescope.sdk.R
 import io.kinescope.sdk.analytics.KinescopeAnalyticsManager
+import io.kinescope.sdk.extensions.animateRotation
 import io.kinescope.sdk.extensions.currentVolumeInPercent
 import io.kinescope.sdk.extensions.getAnalyticsArguments
+import io.kinescope.sdk.extensions.playbackSpeed
 import io.kinescope.sdk.logger.KinescopeLogger
 import io.kinescope.sdk.logger.KinescopeLoggerLevel
 import io.kinescope.sdk.models.videos.KinescopeVideo
 import io.kinescope.sdk.player.KinescopeGlideListener
 import io.kinescope.sdk.player.KinescopeVideoPlayer
 import io.kinescope.sdk.player.quality.KinescopeQualityManager
+import io.kinescope.sdk.player.quality.KinescopeQualityVariant
 import io.kinescope.sdk.player.quality.getQualityVariantsList
 import io.kinescope.sdk.player.speed.KinescopeSpeedVariant
-import io.kinescope.sdk.utils.animateRotation
+import io.kinescope.sdk.settings.KinescopeSettingsOption
+import io.kinescope.sdk.settings.KinescopeSettingsView
 import io.kinescope.sdk.utils.formatLiveStartDate
 
 
@@ -169,6 +173,7 @@ class KinescopePlayerView(
     private var subtitlesButton: View? = null
     private var attachmentsButton: View? = null
     private var customButton: ImageButton? = null
+    private var settingsMenuView: KinescopeSettingsView? = null
 
     private var titleView: TextView? = null
     private var authorView: TextView? = null
@@ -213,6 +218,42 @@ class KinescopePlayerView(
     private val progressUpdateListener =
         PlayerControlView.ProgressUpdateListener { _, _ ->
         }
+    private val playbackSpeedVariants by lazy {
+        listOf(
+            KinescopeSpeedVariant(
+                name = context.getString(R.string.settings_playback_speed_0_25),
+                speed = KinescopeSpeedVariant.PLAYBACK_SPEED_VARIANT_0_25
+            ),
+            KinescopeSpeedVariant(
+                name = context.getString(R.string.settings_playback_speed_0_5),
+                speed = KinescopeSpeedVariant.PLAYBACK_SPEED_VARIANT_0_5
+            ),
+            KinescopeSpeedVariant(
+                name = context.getString(R.string.settings_playback_speed_0_75),
+                speed = KinescopeSpeedVariant.PLAYBACK_SPEED_VARIANT_0_75
+            ),
+            KinescopeSpeedVariant(
+                name = context.getString(R.string.settings_playback_speed_normal),
+                speed = KinescopeSpeedVariant.PLAYBACK_SPEED_VARIANT_NORMAL,
+            ),
+            KinescopeSpeedVariant(
+                name = context.getString(R.string.settings_playback_speed_1_25),
+                speed = KinescopeSpeedVariant.PLAYBACK_SPEED_VARIANT_1_25
+            ),
+            KinescopeSpeedVariant(
+                name = context.getString(R.string.settings_playback_speed_1_5),
+                speed = KinescopeSpeedVariant.PLAYBACK_SPEED_VARIANT_1_5
+            ),
+            KinescopeSpeedVariant(
+                name = context.getString(R.string.settings_playback_speed_1_75),
+                speed = KinescopeSpeedVariant.PLAYBACK_SPEED_VARIANT_1_75
+            ),
+            KinescopeSpeedVariant(
+                name = context.getString(R.string.settings_playback_speed_2),
+                speed = KinescopeSpeedVariant.PLAYBACK_SPEED_VARIANT_2
+            )
+        )
+    }
 
     private var componentListener = object :
         Player.Listener,
@@ -353,7 +394,7 @@ class KinescopePlayerView(
             } else if (fullscreenButton === view) {
                 onFullscreenButtonCallback?.invoke()
             } else if (optionsButton === view) {
-
+                showSettingsMenu()
             } else if (subtitlesButton === view) {
                 //TODO: Subtitles menu
             } else if (attachmentsButton === view) {
@@ -369,6 +410,7 @@ class KinescopePlayerView(
     init {
         inflate(context, R.layout.view_kinesope_player, this)
         exoPlayerView = findViewById(R.id.view_exoplayer)
+
         bufferingView = findViewById(R.id.view_buffering)
         bufferingView?.isVisible = false
 
@@ -403,13 +445,30 @@ class KinescopePlayerView(
         liveStartDateContainerView = findViewById(R.id.live_start_date_ll)
         liveStartDateTextView = findViewById(R.id.live_start_date_tv)
 
+        settingsMenuView = findViewById<KinescopeSettingsView?>(R.id.settings_menu)
+            .apply {
+                addParameter(
+                    parameter = KinescopeSettingsView.Parameter.PlaybackSpeed,
+                    title = resources.getString(R.string.settings_parameter_playback_speed),
+                    icon = R.drawable.ic_playback_speed
+                )
+                addParameter(
+                    parameter = KinescopeSettingsView.Parameter.VideoQuality,
+                    title = resources.getString(R.string.settings_parameter_video_quality),
+                    icon = R.drawable.ic_quality
+                )
+                onOptionSelected = ::onSettingsOptionSelected
+            }
+
         applyKinescopePlayerOptions()
         setSubtitlesStyling()
         setUIListeners()
     }
 
     /**
-     * Attaches Kinescope player and loads KinescopePlayerOptions to this KinescopePlayerView
+     * Attaches Kinescope player and loads KinescopePlayerOptions
+     * to this KinescopePlayerView
+     *
      */
     fun setPlayer(kinescopePlayer: KinescopeVideoPlayer?) {
         Assertions.checkState(Looper.myLooper() == Looper.getMainLooper())
@@ -424,6 +483,9 @@ class KinescopePlayerView(
 
         kinescopePlayer?.exoPlayer?.addListener(componentListener)
         kinescopePlayer?.onSourceChanged = { source, metricUrl ->
+            qualityManager?.setVariant(
+                id = KinescopeQualityVariant.QUALITY_VARIANT_AUTO_ID
+            )
             analyticsManager.setSource(
                 source = source,
                 metricUrl = metricUrl,
@@ -638,7 +700,7 @@ class KinescopePlayerView(
             seekView?.isVisible = options.showSeekBar
             subtitlesButton?.isVisible = options.showSubtitlesButton
             attachmentsButton?.isVisible = options.showAttachments
-            optionsButton?.isVisible = false
+            optionsButton?.isVisible = options.showOptionsButton
         }
     }
 
@@ -692,6 +754,88 @@ class KinescopePlayerView(
                         )
                     )
             }
+        }
+    }
+
+    private fun showSettingsMenu() {
+        val playbackSpeedCurrentValue = playbackSpeedVariants
+            .find { variant -> variant.speed == kinescopePlayer?.exoPlayer?.playbackSpeed }
+            ?.name
+            .orEmpty()
+
+        val qualityCurrentValue = when (qualityManager?.isAutoQuality == true) {
+            true -> context.getString(
+                R.string.settings_video_quality_variant_auto_caption,
+                kinescopePlayer?.exoPlayer?.videoSize?.height.toString()
+            )
+
+            else -> qualityManager?.selectedVariant?.name.orEmpty()
+        }
+
+        settingsMenuView?.apply {
+            setParameterCurrentValue(
+                parameter = KinescopeSettingsView.Parameter.PlaybackSpeed,
+                value = playbackSpeedCurrentValue,
+            )
+            setParameterCurrentValue(
+                parameter = KinescopeSettingsView.Parameter.VideoQuality,
+                value = qualityCurrentValue
+            )
+            setParameterOptions(
+                parameter = KinescopeSettingsView.Parameter.PlaybackSpeed,
+                options = getSettingsMenuPlaybackSpeedOptions()
+            )
+            setParameterOptions(
+                parameter = KinescopeSettingsView.Parameter.VideoQuality,
+                options = getSettingsMenuVideoQualityOptions()
+            )
+            show()
+        }
+    }
+
+    private fun getSettingsMenuPlaybackSpeedOptions() =
+        playbackSpeedVariants
+            .mapIndexed { index, variant ->
+                KinescopeSettingsOption(
+                    id = index,
+                    title = variant.name,
+                    isSelected = kinescopePlayer?.exoPlayer?.playbackSpeed == variant.speed,
+                )
+            }
+
+    private fun getSettingsMenuVideoQualityOptions() =
+        qualityManager?.variants
+            .orEmpty()
+            .map { variant ->
+                KinescopeSettingsOption(
+                    id = variant.id,
+                    title = variant.name,
+                    isSelected = variant.isSelected
+                )
+            }
+            .toMutableList()
+            .apply {
+                add(
+                    KinescopeSettingsOption(
+                        id = KinescopeQualityVariant.QUALITY_VARIANT_AUTO_ID,
+                        title = resources.getString(R.string.settings_video_quality_variant_auto),
+                        isSelected = qualityManager?.isAutoQuality ?: false
+                    )
+                )
+            }
+
+    private fun onSettingsOptionSelected(
+        parameter: KinescopeSettingsView.Parameter,
+        optionId: Int
+    ) {
+        when (parameter) {
+            is KinescopeSettingsView.Parameter.PlaybackSpeed -> kinescopePlayer?.setPlaybackSpeed(
+                speed = playbackSpeedVariants[optionId].speed
+            )
+
+            is KinescopeSettingsView.Parameter.VideoQuality -> qualityManager?.setVariant(
+                id = optionId
+            )
         }
     }
 
@@ -950,41 +1094,5 @@ class KinescopePlayerView(
         kinescopePlayer?.exoPlayer.getAnalyticsArguments(
             volume = audioManager.currentVolumeInPercent,
             isFullscreen = isVideoFullscreen,
-        )
-
-    private fun getSpeedVariants(): List<KinescopeSpeedVariant> =
-        listOf(
-            KinescopeSpeedVariant(
-                name = context.getString(R.string.settings_speed_0_25),
-                speed = KinescopeSpeedVariant.SPEED_VARIANT_0_25
-            ),
-            KinescopeSpeedVariant(
-                name = context.getString(R.string.settings_speed_0_5),
-                speed = KinescopeSpeedVariant.SPEED_VARIANT_0_5
-            ),
-            KinescopeSpeedVariant(
-                name = context.getString(R.string.settings_speed_0_75),
-                speed = KinescopeSpeedVariant.SPEED_VARIANT_0_75
-            ),
-            KinescopeSpeedVariant(
-                name = context.getString(R.string.settings_speed_normal),
-                speed = KinescopeSpeedVariant.SPEED_VARIANT_NORMAL,
-            ),
-            KinescopeSpeedVariant(
-                name = context.getString(R.string.settings_speed_1_25),
-                speed = KinescopeSpeedVariant.SPEED_VARIANT_1_25
-            ),
-            KinescopeSpeedVariant(
-                name = context.getString(R.string.settings_speed_1_5),
-                speed = KinescopeSpeedVariant.SPEED_VARIANT_1_5
-            ),
-            KinescopeSpeedVariant(
-                name = context.getString(R.string.settings_speed_1_75),
-                speed = KinescopeSpeedVariant.SPEED_VARIANT_1_75
-            ),
-            KinescopeSpeedVariant(
-                name = context.getString(R.string.settings_speed_2),
-                speed = KinescopeSpeedVariant.SPEED_VARIANT_2
-            )
         )
 }

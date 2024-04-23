@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import io.kinescope.sdk.R
-import io.kinescope.sdk.utils.EMPTY
+import io.kinescope.sdk.extensions.EMPTY
 
 @UnstableApi
 class KinescopeQualityManager(
@@ -68,7 +68,10 @@ class KinescopeQualityManager(
             .map { variant ->
                 KinescopeQualityVariantUi(
                     id = variant.id,
-                    name = context.getString(R.string.settings_quality_variant, variant.id.toString()),
+                    name = context.getString(
+                        R.string.settings_video_quality_variant,
+                        variant.id.toString()
+                    ),
                     isSelected = variant.id == selectedVariantId,
                 )
             }
