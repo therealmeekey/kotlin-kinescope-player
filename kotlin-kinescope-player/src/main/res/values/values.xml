@@ -20,8 +20,6 @@
     <color name="kinescope_settings_item">#222222</color>
     <color name="kinescope_settings_item_pressed">#444444</color>
 
-    <color name="white">#FFFFFF</color>
-
     <style name="KinescopeMediaButton">
         <item name="android:background">?android:attr/selectableItemBackground</item>
         <item name="android:layout_width">@dimen/kinescope_media_button_height</item>
