@@ -1,7 +1,5 @@
 package io.kinescope.sdk.utils
 
-import android.app.Application
-
 const val kinescopeReferer = "https://kinescope.io/"
 const val kinescopeFetchEndpoint = "https://kinescope.io/"
 const val kinescopeApiEndpoint = "https://api.kinescope.io/"
