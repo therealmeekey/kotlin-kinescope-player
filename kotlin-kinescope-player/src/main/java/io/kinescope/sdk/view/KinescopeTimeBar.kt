@@ -536,7 +536,7 @@ class KinescopeTimeBar @JvmOverloads constructor(
     public override fun onDraw(canvas: Canvas) {
         canvas.save()
         drawTimeBar(canvas)
-        drawPlayead(canvas)
+        drawPlayHead(canvas)
         canvas.restore()
     }
 
@@ -879,7 +879,7 @@ class KinescopeTimeBar @JvmOverloads constructor(
         }
     }
 
-    private fun drawPlayead(canvas: Canvas) {
+    private fun drawPlayHead(canvas: Canvas) {
         if (duration <= 0) {
             return
         }

@@ -470,8 +470,7 @@ class KinescopePlayerView(
      * Enables the live stream mode for the video player,
      * making the progress bar infinitive and adding the Live badge.
      */
-    fun setLiveState(
-    ) {
+    fun setLiveState() {
         isLiveState = true
         isLiveSynced = true
 
@@ -496,6 +495,12 @@ class KinescopePlayerView(
         @DrawableRes errorPlaceholder: Int = R.drawable.default_poster,
         onLoadFinished: ((isSuccess: Boolean) -> Unit)? = null,
     ) {
+        with(kinescopePlayer?.exoPlayer?.playbackState) {
+            if (this == Player.STATE_BUFFERING || (isLiveState && this == Player.STATE_READY)) {
+                return
+            }
+        }
+
         posterView?.let {
             it.isVisible = true
             Glide.with(context)
@@ -517,19 +522,16 @@ class KinescopePlayerView(
     }
 
     /**
-     * Shows the live stream starting date. This method should be called only after [setLiveState].
+     * Shows the live stream starting date.
      * @param startDate ISO8601 date string
      */
-    fun showLiveStartDate(startDate: String) {
-        if (isLiveState) {
-            formatLiveStartDate(startDate)
-                .takeIf { startDate.isNotEmpty() }
-                ?.let { formattedDate ->
-                    liveStartDateContainerView?.isVisible = true
-                    liveStartDateTextView?.text = formattedDate
-                }
-        }
-    }
+    fun showLiveStartDate(startDate: String) =
+        formatLiveStartDate(startDate)
+            .takeIf { startDate.isNotEmpty() }
+            ?.let { formattedDate ->
+                liveStartDateContainerView?.isVisible = true
+                liveStartDateTextView?.text = formattedDate
+            }
 
     /**
      * Hides the live stream starting date. If video buffering has started, calling this method will do nothing.
