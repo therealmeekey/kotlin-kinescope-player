@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="kinescope_primary_color">#6161FC</color>
+
     <dimen name="kinescope_media_button_height">36dp</dimen>
     <dimen name="kinescope_media_button_width">36dp</dimen>
     <dimen name="kinescope_media_settings_offset">8dp</dimen>
 
     <color name="kinescope_progressbar_buffered_color">#FFFFFF</color>
     <color name="kinescope_progressbar_unplayed_color">#52FFFFFF</color>
-    <color name="kinescope_progressbar_played_color">#6161FC</color>
 
     <color name="kinescope_circle_animation_color">#4DFFFFFF</color>
     <color name="kinescope_circle_bg_color">#00000000</color>
@@ -19,12 +20,13 @@
     <color name="kinescope_settings_item">#222222</color>
     <color name="kinescope_settings_item_pressed">#444444</color>
 
+    <color name="white">#FFFFFF</color>
+
     <style name="KinescopeMediaButton">
         <item name="android:background">?android:attr/selectableItemBackground</item>
         <item name="android:layout_width">@dimen/kinescope_media_button_height</item>
         <item name="android:layout_height">@dimen/kinescope_media_button_width</item>
     </style>
-
 
     <declare-styleable name="KinescopeTimeBar">
         <attr name="bar_height" />

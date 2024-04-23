@@ -2,25 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
     android:layout_gravity="center"
     android:gravity="center"
-    >
+    android:orientation="horizontal">
 
     <ImageButton
         android:id="@+id/ib_play"
+        style="@style/KinescopeMediaButton"
         android:layout_width="96dp"
         android:layout_height="96dp"
-        style="@style/KinescopeMediaButton"
-        android:src="@drawable/kinescope_controls_play"
-        />
+        android:src="@drawable/kinescope_controls_play" />
 
     <ImageButton
         android:id="@+id/ib_pause"
+        style="@style/KinescopeMediaButton"
         android:layout_width="96dp"
         android:layout_height="96dp"
-        style="@style/KinescopeMediaButton"
-        android:src="@drawable/kinescope_controls_pause"
-        />
+        android:src="@drawable/kinescope_controls_pause" />
 
 </LinearLayout>

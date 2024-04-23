@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.VectorDrawable
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.KeyEvent
@@ -16,14 +17,15 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.media3.common.C
 import androidx.media3.common.util.Assertions
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.ui.TimeBar
 import io.kinescope.sdk.R
-
-import java.util.*
+import java.util.Formatter
+import java.util.Locale
 import java.util.concurrent.CopyOnWriteArraySet
 
 /*
@@ -175,6 +177,169 @@ class KinescopeTimeBar @JvmOverloads constructor(
     //private var adGroupTimesMs: LongArray? = null
     //private var playedAdGroups: BooleanArray? = null
 
+    init {
+        seekBounds = Rect()
+        progressBar = Rect()
+        bufferedBar = Rect()
+        scrubberBar = Rect()
+        playedPaint = Paint()
+        bufferedPaint = Paint()
+        unplayedPaint = Paint()
+        //adMarkerPaint = Paint()
+        playedAdMarkerPaint = Paint()
+        scrubberPaint = Paint()
+        scrubberPaint.isAntiAlias = true
+        listeners = CopyOnWriteArraySet()
+        touchPosition = Point()
+
+        val primaryColor =
+            ContextCompat.getColor(context, R.color.kinescope_primary_color)
+        val bufferedColorDefault =
+            ContextCompat.getColor(context, R.color.kinescope_progressbar_buffered_color)
+        val unplayedColorDefault =
+            ContextCompat.getColor(context, R.color.kinescope_progressbar_unplayed_color)
+
+        // Calculate the dimensions and paints for drawn elements.
+        val res = context.resources
+        val displayMetrics = res.displayMetrics
+        density = displayMetrics.density
+        fineScrubYThreshold = dpToPx(
+            density,
+            FINE_SCRUB_Y_THRESHOLD_DP
+        )
+        val defaultBarHeight: Int =
+            dpToPx(density, DEFAULT_BAR_HEIGHT_DP)
+        var defaultTouchTargetHeight: Int = dpToPx(
+            density,
+            DEFAULT_TOUCH_TARGET_HEIGHT_DP
+        )
+        val defaultScrubberEnabledSize: Int = dpToPx(
+            density,
+            DEFAULT_SCRUBBER_ENABLED_SIZE_DP
+        )
+        val defaultScrubberDisabledSize: Int = dpToPx(
+            density,
+            DEFAULT_SCRUBBER_DISABLED_SIZE_DP
+        )
+        val defaultScrubberDraggedSize: Int = dpToPx(
+            density,
+            DEFAULT_SCRUBBER_DRAGGED_SIZE_DP
+        )
+        if (timebarAttrs != null) {
+            val a = context
+                .theme
+                .obtainStyledAttributes(
+                    timebarAttrs, R.styleable.KinescopeTimeBar, defStyleAttr, defStyleRes
+                )
+            try {
+                scrubberDrawable = a.getDrawable(R.styleable.KinescopeTimeBar_scrubber_drawable)
+                scrubberDrawable?.let {
+                    setDrawableLayoutDirection(it)
+                    defaultTouchTargetHeight =
+                        Math.max(it.minimumHeight, defaultTouchTargetHeight)
+                }
+                barHeight =
+                    a.getDimensionPixelSize(
+                        R.styleable.KinescopeTimeBar_bar_height,
+                        defaultBarHeight
+                    )
+                touchTargetHeight = a.getDimensionPixelSize(
+                    R.styleable.KinescopeTimeBar_touch_target_height, defaultTouchTargetHeight
+                )
+                barGravity = a.getInt(
+                    R.styleable.KinescopeTimeBar_bar_gravity,
+                    BAR_GRAVITY_CENTER
+                )
+                /*adMarkerWidth = a.getDimensionPixelSize(
+                    R.styleable.DefaultTimeBar_ad_marker_width, defaultAdMarkerWidth
+                )*/
+                scrubberEnabledSize = a.getDimensionPixelSize(
+                    R.styleable.KinescopeTimeBar_scrubber_enabled_size, defaultScrubberEnabledSize
+                )
+                scrubberDisabledSize = a.getDimensionPixelSize(
+                    R.styleable.KinescopeTimeBar_scrubber_disabled_size, defaultScrubberDisabledSize
+                )
+                scrubberDraggedSize = a.getDimensionPixelSize(
+                    R.styleable.KinescopeTimeBar_scrubber_dragged_size, defaultScrubberDraggedSize
+                )
+                val playedColor = a.getInt(
+                    R.styleable.KinescopeTimeBar_played_color,
+                    primaryColor
+                )
+                val scrubberColor = a.getInt(
+                    R.styleable.KinescopeTimeBar_scrubber_color,
+                    primaryColor
+                )
+                val bufferedColor = a.getInt(
+                    R.styleable.KinescopeTimeBar_buffered_color,
+                    bufferedColorDefault
+                )
+                val unplayedColor = a.getInt(
+                    R.styleable.KinescopeTimeBar_unplayed_color,
+                    unplayedColorDefault
+                )
+                /*val adMarkerColor = a.getInt(
+                    R.styleable.DefaultTimeBar_ad_marker_color,
+                    DEFAULT_AD_MARKER_COLOR
+                )
+                val playedAdMarkerColor = a.getInt(
+                    R.styleable.DefaultTimeBar_played_ad_marker_color,
+                    DEFAULT_PLAYED_AD_MARKER_COLOR
+                )*/
+                playedPaint.color = playedColor
+                scrubberPaint.color = scrubberColor
+                bufferedPaint.color = bufferedColor
+                unplayedPaint.color = unplayedColor
+                //adMarkerPaint.color = adMarkerColor
+                //playedAdMarkerPaint.color = playedAdMarkerColor
+            } finally {
+                a.recycle()
+            }
+        } else {
+            barHeight = defaultBarHeight
+            touchTargetHeight = defaultTouchTargetHeight
+            barGravity = BAR_GRAVITY_CENTER
+            //adMarkerWidth = defaultAdMarkerWidth
+            scrubberEnabledSize = defaultScrubberEnabledSize
+            scrubberDisabledSize = defaultScrubberDisabledSize
+            scrubberDraggedSize = defaultScrubberDraggedSize
+
+            playedPaint.color = primaryColor
+            scrubberPaint.color = primaryColor
+            bufferedPaint.color = bufferedColorDefault
+            unplayedPaint.color = unplayedColorDefault
+
+            //adMarkerPaint.color = DEFAULT_AD_MARKER_COLOR
+            playedAdMarkerPaint.color = DEFAULT_PLAYED_AD_MARKER_COLOR
+            scrubberDrawable = null
+        }
+        formatBuilder = StringBuilder()
+        formatter = Formatter(formatBuilder, Locale.getDefault())
+        stopScrubbingRunnable = Runnable { stopScrubbing( /* canceled= */false) }
+        scrubberPadding = if (scrubberDrawable != null) {
+            (scrubberDrawable!!.minimumWidth + 1) / 2
+        } else {
+            ((Math.max(
+                scrubberDisabledSize,
+                Math.max(scrubberEnabledSize, scrubberDraggedSize)
+            ) + 1)
+                    / 2)
+        }
+        scrubberScale = 1.0f
+        scrubberScalingAnimator = ValueAnimator()
+        scrubberScalingAnimator.addUpdateListener { animation: ValueAnimator ->
+            scrubberScale = animation.animatedValue as Float
+            invalidate(seekBounds)
+        }
+        duration = C.TIME_UNSET
+        keyTimeIncrement = C.TIME_UNSET
+        keyCountIncrement = DEFAULT_INCREMENT_COUNT
+        isFocusable = true
+        if (importantForAccessibility == IMPORTANT_FOR_ACCESSIBILITY_AUTO) {
+            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
+        }
+    }
+
     /** Shows the scrubber handle.  */
     fun showScrubber() {
         if (scrubberScalingAnimator.isStarted) {
@@ -249,6 +414,12 @@ class KinescopeTimeBar @JvmOverloads constructor(
     fun setScrubberColor(@ColorInt scrubberColor: Int) {
         scrubberPaint.color = scrubberColor
         invalidate(seekBounds)
+
+        scrubberDrawable?.let {
+            if (it is VectorDrawable) {
+                it.setTint(scrubberColor)
+            }
+        }
     }
 
     /**
@@ -365,7 +536,7 @@ class KinescopeTimeBar @JvmOverloads constructor(
     public override fun onDraw(canvas: Canvas) {
         canvas.save()
         drawTimeBar(canvas)
-        drawPlayhead(canvas)
+        drawPlayHead(canvas)
         canvas.restore()
     }
 
@@ -708,7 +879,7 @@ class KinescopeTimeBar @JvmOverloads constructor(
         }
     }
 
-    private fun drawPlayhead(canvas: Canvas) {
+    private fun drawPlayHead(canvas: Canvas) {
         if (duration <= 0) {
             return
         }
@@ -785,17 +956,17 @@ class KinescopeTimeBar @JvmOverloads constructor(
         /** Default diameter for the scrubber when dragged, in dp.  */
         const val DEFAULT_SCRUBBER_DRAGGED_SIZE_DP = 16
 
-        /** Default color for the played portion of the time bar.  */
-        const val DEFAULT_PLAYED_COLOR = -0x1
-
-        /** Default color for the unplayed portion of the time bar.  */
-        const val DEFAULT_UNPLAYED_COLOR = 0x33FFFFFF
-
-        /** Default color for the buffered portion of the time bar.  */
-        const val DEFAULT_BUFFERED_COLOR = -0x33000001
-
-        /** Default color for the scrubber handle.  */
-        const val DEFAULT_SCRUBBER_COLOR = -0x1
+//        /** Default color for the played portion of the time bar.  */
+//        const val DEFAULT_PLAYED_COLOR = -0x1
+//
+//        /** Default color for the unplayed portion of the time bar.  */
+//        const val DEFAULT_UNPLAYED_COLOR = 0x33FFFFFF
+//
+//        /** Default color for the buffered portion of the time bar.  */
+//        const val DEFAULT_BUFFERED_COLOR = -0x33000001
+//
+//        /** Default color for the scrubber handle.  */
+//        const val DEFAULT_SCRUBBER_COLOR = -0x1
 
         /** Default color for ad markers.  */
         const val DEFAULT_AD_MARKER_COLOR = -0x4d000100
@@ -839,161 +1010,6 @@ class KinescopeTimeBar @JvmOverloads constructor(
 
         private fun pxToDp(density: Float, px: Int): Int {
             return (px / density).toInt()
-        }
-    }
-
-    // Suppress warnings due to usage of View methods in the constructor.
-    init {
-        seekBounds = Rect()
-        progressBar = Rect()
-        bufferedBar = Rect()
-        scrubberBar = Rect()
-        playedPaint = Paint()
-        bufferedPaint = Paint()
-        unplayedPaint = Paint()
-        //adMarkerPaint = Paint()
-        playedAdMarkerPaint = Paint()
-        scrubberPaint = Paint()
-        scrubberPaint.isAntiAlias = true
-        listeners = CopyOnWriteArraySet()
-        touchPosition = Point()
-
-        // Calculate the dimensions and paints for drawn elements.
-        val res = context.resources
-        val displayMetrics = res.displayMetrics
-        density = displayMetrics.density
-        fineScrubYThreshold = dpToPx(
-            density,
-            FINE_SCRUB_Y_THRESHOLD_DP
-        )
-        val defaultBarHeight: Int =
-            dpToPx(density, DEFAULT_BAR_HEIGHT_DP)
-        var defaultTouchTargetHeight: Int = dpToPx(
-            density,
-            DEFAULT_TOUCH_TARGET_HEIGHT_DP
-        )
-        val defaultScrubberEnabledSize: Int = dpToPx(
-            density,
-            DEFAULT_SCRUBBER_ENABLED_SIZE_DP
-        )
-        val defaultScrubberDisabledSize: Int = dpToPx(
-            density,
-            DEFAULT_SCRUBBER_DISABLED_SIZE_DP
-        )
-        val defaultScrubberDraggedSize: Int = dpToPx(
-            density,
-            DEFAULT_SCRUBBER_DRAGGED_SIZE_DP
-        )
-        if (timebarAttrs != null) {
-            val a = context
-                .theme
-                .obtainStyledAttributes(
-                    timebarAttrs, R.styleable.KinescopeTimeBar, defStyleAttr, defStyleRes
-                )
-            try {
-                scrubberDrawable = a.getDrawable(R.styleable.KinescopeTimeBar_scrubber_drawable)
-                if (scrubberDrawable != null) {
-                    setDrawableLayoutDirection(scrubberDrawable!!)
-                    defaultTouchTargetHeight =
-                        Math.max(scrubberDrawable!!.minimumHeight, defaultTouchTargetHeight)
-                }
-                barHeight =
-                    a.getDimensionPixelSize(
-                        R.styleable.KinescopeTimeBar_bar_height,
-                        defaultBarHeight
-                    )
-                touchTargetHeight = a.getDimensionPixelSize(
-                    R.styleable.KinescopeTimeBar_touch_target_height, defaultTouchTargetHeight
-                )
-                barGravity = a.getInt(
-                    R.styleable.KinescopeTimeBar_bar_gravity,
-                    BAR_GRAVITY_CENTER
-                )
-                /*adMarkerWidth = a.getDimensionPixelSize(
-                    R.styleable.DefaultTimeBar_ad_marker_width, defaultAdMarkerWidth
-                )*/
-                scrubberEnabledSize = a.getDimensionPixelSize(
-                    R.styleable.KinescopeTimeBar_scrubber_enabled_size, defaultScrubberEnabledSize
-                )
-                scrubberDisabledSize = a.getDimensionPixelSize(
-                    R.styleable.KinescopeTimeBar_scrubber_disabled_size, defaultScrubberDisabledSize
-                )
-                scrubberDraggedSize = a.getDimensionPixelSize(
-                    R.styleable.KinescopeTimeBar_scrubber_dragged_size, defaultScrubberDraggedSize
-                )
-                val playedColor = a.getInt(
-                    R.styleable.KinescopeTimeBar_played_color,
-                    DEFAULT_PLAYED_COLOR
-                )
-                val scrubberColor = a.getInt(
-                    R.styleable.KinescopeTimeBar_scrubber_color,
-                    DEFAULT_SCRUBBER_COLOR
-                )
-                val bufferedColor = a.getInt(
-                    R.styleable.KinescopeTimeBar_buffered_color,
-                    DEFAULT_BUFFERED_COLOR
-                )
-                val unplayedColor = a.getInt(
-                    R.styleable.KinescopeTimeBar_unplayed_color,
-                    DEFAULT_UNPLAYED_COLOR
-                )
-                /*val adMarkerColor = a.getInt(
-                    R.styleable.DefaultTimeBar_ad_marker_color,
-                    DEFAULT_AD_MARKER_COLOR
-                )
-                val playedAdMarkerColor = a.getInt(
-                    R.styleable.DefaultTimeBar_played_ad_marker_color,
-                    DEFAULT_PLAYED_AD_MARKER_COLOR
-                )*/
-                playedPaint.color = playedColor
-                scrubberPaint.color = scrubberColor
-                bufferedPaint.color = bufferedColor
-                unplayedPaint.color = unplayedColor
-                //adMarkerPaint.color = adMarkerColor
-                //playedAdMarkerPaint.color = playedAdMarkerColor
-            } finally {
-                a.recycle()
-            }
-        } else {
-            barHeight = defaultBarHeight
-            touchTargetHeight = defaultTouchTargetHeight
-            barGravity = BAR_GRAVITY_CENTER
-            //adMarkerWidth = defaultAdMarkerWidth
-            scrubberEnabledSize = defaultScrubberEnabledSize
-            scrubberDisabledSize = defaultScrubberDisabledSize
-            scrubberDraggedSize = defaultScrubberDraggedSize
-            playedPaint.color = DEFAULT_PLAYED_COLOR
-            scrubberPaint.color = DEFAULT_SCRUBBER_COLOR
-            bufferedPaint.color = DEFAULT_BUFFERED_COLOR
-            unplayedPaint.color = DEFAULT_UNPLAYED_COLOR
-            //adMarkerPaint.color = DEFAULT_AD_MARKER_COLOR
-            playedAdMarkerPaint.color = DEFAULT_PLAYED_AD_MARKER_COLOR
-            scrubberDrawable = null
-        }
-        formatBuilder = StringBuilder()
-        formatter = Formatter(formatBuilder, Locale.getDefault())
-        stopScrubbingRunnable = Runnable { stopScrubbing( /* canceled= */false) }
-        scrubberPadding = if (scrubberDrawable != null) {
-            (scrubberDrawable!!.minimumWidth + 1) / 2
-        } else {
-            ((Math.max(
-                scrubberDisabledSize,
-                Math.max(scrubberEnabledSize, scrubberDraggedSize)
-            ) + 1)
-                    / 2)
-        }
-        scrubberScale = 1.0f
-        scrubberScalingAnimator = ValueAnimator()
-        scrubberScalingAnimator.addUpdateListener { animation: ValueAnimator ->
-            scrubberScale = animation.animatedValue as Float
-            invalidate(seekBounds)
-        }
-        duration = C.TIME_UNSET
-        keyTimeIncrement = C.TIME_UNSET
-        keyCountIncrement = DEFAULT_INCREMENT_COUNT
-        isFocusable = true
-        if (importantForAccessibility == IMPORTANT_FOR_ACCESSIBILITY_AUTO) {
-            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         }
     }
 }

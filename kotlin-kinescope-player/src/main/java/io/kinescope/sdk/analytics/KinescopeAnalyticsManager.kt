@@ -6,7 +6,8 @@ import io.kinescope.sdk.utils.currentTimestamp
 import kotlin.math.roundToInt
 
 class KinescopeAnalyticsManager(
-    context: Context
+    context: Context,
+    private val onEvent: (event: String, data: String) -> Unit,
 ) {
     private val analytics = KinescopeAnalytics(
         context = context
@@ -184,13 +185,14 @@ class KinescopeAnalyticsManager(
         value: Float = 0f
     ) {
         if (source.isNotEmpty()) {
-            analytics.sendEvent(
+            val eventStringData = analytics.sendEvent(
                 event = event,
                 source = source,
                 watchedDuration = watchedDuration,
                 args = args,
                 value = value,
             )
+            onEvent(event.value, eventStringData)
         }
     }
 
