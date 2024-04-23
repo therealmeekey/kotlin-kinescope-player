@@ -3,16 +3,6 @@
 
 ## Installation
 
-The Kinescope SDK requires several dependencies. We have excluded these dependencies from the SDK to avoid class duplication errors. If you haven't already added these dependencies in your project, please do it.
-```
-implementation "com.squareup.retrofit2:retrofit:<VERSION>"
-implementation of "com.squareup.okhttp3:logging-interceptor:<VERSION>"
-implementation "com.github.bumptech.glide:glide:<VERSION>"
-implementation of "com.google.guava:guava:31.1-android"
-```
-
-**NOTE!** The Kinescope SDK also requires the `Core CTX`, `AppCompat` and `Material` libraries. In most cases, libraries are included when creating an Android Studio project.
-
 ### Gradle
 
 **Step 1.** Add the JitPack repository to your build file.
