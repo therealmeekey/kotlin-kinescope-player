@@ -206,3 +206,11 @@ private fun setFullscreen(fullscreen: Boolean) {
    }
 }
 ```
+
+### Analytics
+
+You can set a callback for analytics events. It is called every time any of the events are dispatched. A date object in string format and event name are passed as the arguments.
+
+```kotlin
+playerView.setAnalyticsCallback { event, data -> }
+```
