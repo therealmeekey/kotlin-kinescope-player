@@ -16,11 +16,13 @@ object FetchBuilder {
         OkHttpClient.Builder()
             .addInterceptor(
                 HttpLoggingInterceptor()
-                    .setLevel(HttpLoggingInterceptor.Level.BODY)
+                    .setLevel(HttpLoggingInterceptor.Level.HEADERS)
             )
             .addInterceptor(Interceptor { chain ->
                 var request: Request = chain.request()
+                android.util.Log.d("KinescopeSDK", "Adding Referer header: $referer for URL: ${request.url}")
                 request = request.newBuilder().header("Referer", referer).build()
+                android.util.Log.d("KinescopeSDK", "Request headers: ${request.headers}")
                 chain.proceed(request)
             }).build()
 
