@@ -177,6 +177,14 @@ class KinescopeVideoPlayer(
             ) {
                 if (response.isSuccessful) {
                     val video = response.body()!!
+                    
+                    // Логируем DRM информацию для отладки
+                    android.util.Log.d("KinescopeSDK", "Video loaded: ${video.title}")
+                    android.util.Log.d("KinescopeSDK", "HLS link: ${video.hlsLink}")
+                    android.util.Log.d("KinescopeSDK", "DRM data: ${video.drm}")
+                    android.util.Log.d("KinescopeSDK", "Widevine license URL: ${video.drm?.widevine?.licenseUrl}")
+                    android.util.Log.d("KinescopeSDK", "FairPlay license URL: ${video.drm?.fairplay?.licenseUrl}")
+                    
                     setVideo(video)
                     onSuccess?.invoke(video)
 
