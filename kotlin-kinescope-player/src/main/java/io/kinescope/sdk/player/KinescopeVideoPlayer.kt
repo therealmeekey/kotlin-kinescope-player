@@ -107,7 +107,22 @@ class KinescopeVideoPlayer(
 
             kinescopeVideo.hlsLink.isNullOrEmpty().not() -> {
                 source = kinescopeVideo.hlsLink.orEmpty()
-                HlsMediaSource.Factory(DefaultHttpDataSource.Factory())
+                
+                // Добавляем headers с Referer для HLS (необходимо для DRM авторизации)
+                val headers: MutableMap<String, String> = HashMap()
+                headers["Referer"] = kinescopePlayerOptions.referer
+                headers["Origin"] = "*/*"
+                
+                val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
+                    .setUserAgent(USER_AGENT)
+                    .setDefaultRequestProperties(headers)
+                    .setTransferListener(
+                        DefaultBandwidthMeter.Builder(context)
+                            .setResetOnNetworkTypeChange(false)
+                            .build()
+                    )
+                
+                HlsMediaSource.Factory(defaultHttpDataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
