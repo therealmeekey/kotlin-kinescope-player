@@ -123,14 +123,22 @@ class KinescopeVideoPlayer(
                     )
                 
                 // Создаем MediaItem с DRM конфигурацией для HLS (аналогично DASH)
-                val hlsMediaItem = MediaItem.Builder()
+                val hlsMediaItemBuilder = MediaItem.Builder()
                     .setUri(Uri.parse(kinescopeVideo.hlsLink.orEmpty()))
-                    .setDrmConfiguration(
+                    .setMimeType(MimeTypes.APPLICATION_M3U8)
+                
+                // Добавляем DRM конфигурацию, если доступна информация о лицензии
+                kinescopeVideo.drm?.widevine?.licenseUrl?.let { licenseUrl ->
+                    hlsMediaItemBuilder.setDrmConfiguration(
                         MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                            .setLicenseUri(licenseUrl)
+                            .setLicenseRequestHeaders(headers)
                             .build()
                     )
-                    .setMimeType(MimeTypes.APPLICATION_M3U8)
-                    .build()
+                    android.util.Log.d("KinescopeSDK", "HLS DRM configured with licenseUrl: $licenseUrl")
+                }
+                
+                val hlsMediaItem = hlsMediaItemBuilder.build()
                 
                 HlsMediaSource.Factory(defaultHttpDataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
