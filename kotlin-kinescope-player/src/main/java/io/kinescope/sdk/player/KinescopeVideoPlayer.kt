@@ -122,9 +122,19 @@ class KinescopeVideoPlayer(
                             .build()
                     )
                 
+                // Создаем MediaItem с DRM конфигурацией для HLS (аналогично DASH)
+                val hlsMediaItem = MediaItem.Builder()
+                    .setUri(Uri.parse(kinescopeVideo.hlsLink.orEmpty()))
+                    .setDrmConfiguration(
+                        MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                            .build()
+                    )
+                    .setMimeType(MimeTypes.APPLICATION_M3U8)
+                    .build()
+                
                 HlsMediaSource.Factory(defaultHttpDataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
+                    .createMediaSource(hlsMediaItem)
             }
 
             else -> return
