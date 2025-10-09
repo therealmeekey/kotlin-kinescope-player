@@ -127,15 +127,20 @@ class KinescopeVideoPlayer(
                     .setUri(Uri.parse(kinescopeVideo.hlsLink.orEmpty()))
                     .setMimeType(MimeTypes.APPLICATION_M3U8)
                 
-                // Добавляем DRM конфигурацию, если доступна информация о лицензии
+                // Добавляем DRM конфигурацию ТОЛЬКО если есть валидный токен
                 kinescopeVideo.drm?.widevine?.licenseUrl?.let { licenseUrl ->
-                    hlsMediaItemBuilder.setDrmConfiguration(
-                        MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
-                            .setLicenseUri(licenseUrl)
-                            .setLicenseRequestHeaders(headers)
-                            .build()
-                    )
-                    android.util.Log.d("KinescopeSDK", "HLS DRM configured with licenseUrl: $licenseUrl")
+                    // Проверяем, что токен НЕ пустой
+                    if (!licenseUrl.endsWith("?token=") && !licenseUrl.endsWith("&token=")) {
+                        hlsMediaItemBuilder.setDrmConfiguration(
+                            MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                                .setLicenseUri(licenseUrl)
+                                .setLicenseRequestHeaders(headers)
+                                .build()
+                        )
+                        android.util.Log.d("KinescopeSDK", "HLS DRM configured with licenseUrl: $licenseUrl")
+                    } else {
+                        android.util.Log.w("KinescopeSDK", "DRM token is empty, skipping DRM configuration for HLS")
+                    }
                 }
                 
                 val hlsMediaItem = hlsMediaItemBuilder.build()
