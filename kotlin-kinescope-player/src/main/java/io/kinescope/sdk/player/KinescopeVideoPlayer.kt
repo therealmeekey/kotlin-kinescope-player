@@ -124,48 +124,13 @@ class KinescopeVideoPlayer(
                             .build()
                     )
                 
-                // Создаем MediaItem с DRM конфигурацией для HLS (аналогично DASH)
-                val hlsMediaItemBuilder = MediaItem.Builder()
-                    .setUri(Uri.parse(kinescopeVideo.hlsLink.orEmpty()))
-                    .setMimeType(MimeTypes.APPLICATION_M3U8)
+                // Используем простой MediaItem.fromUri() как в оригинальном SDK
+                // ExoPlayer сам решит, нужен ли DRM на основе манифеста
+                android.util.Log.d("KinescopeSDK", "Loading HLS without explicit DRM configuration")
                 
-                // Добавляем DRM конфигурацию ТОЛЬКО если есть валидный токен
-                kinescopeVideo.drm?.widevine?.licenseUrl?.let { licenseUrl ->
-                    // Проверяем, что токен НЕ пустой
-                    if (!licenseUrl.endsWith("?token=") && !licenseUrl.endsWith("&token=")) {
-                        hlsMediaItemBuilder.setDrmConfiguration(
-                            MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
-                                .setLicenseUri(licenseUrl)
-                                .setLicenseRequestHeaders(headers)
-                                .build()
-                        )
-                        android.util.Log.d("KinescopeSDK", "HLS DRM configured with licenseUrl: $licenseUrl")
-                    } else {
-                        android.util.Log.w("KinescopeSDK", "DRM token is empty, skipping DRM configuration for HLS")
-                    }
-                }
-                
-                val hlsMediaItem = hlsMediaItemBuilder.build()
-                
-                val hlsFactory = HlsMediaSource.Factory(defaultHttpDataSourceFactory)
+                HlsMediaSource.Factory(defaultHttpDataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                
-                // Если токен пустой, явно отключаем DRM обработку
-                // Иначе ExoPlayer будет пытаться обработать DRM теги из манифеста
-                val hasValidToken = kinescopeVideo.drm?.widevine?.licenseUrl?.let { licenseUrl ->
-                    !licenseUrl.endsWith("?token=") && !licenseUrl.endsWith("&token=")
-                } ?: false
-                
-                if (!hasValidToken) {
-                    // Отключаем DRM для HLS с пустым токеном
-                    // Используем DRM_UNSUPPORTED чтобы игнорировать DRM теги в манифесте
-                    hlsFactory.setDrmSessionManagerProvider {
-                        DrmSessionManager.DRM_UNSUPPORTED
-                    }
-                    android.util.Log.d("KinescopeSDK", "DRM explicitly disabled for HLS (empty token)")
-                }
-                
-                hlsFactory.createMediaSource(hlsMediaItem)
+                    .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
             else -> return
