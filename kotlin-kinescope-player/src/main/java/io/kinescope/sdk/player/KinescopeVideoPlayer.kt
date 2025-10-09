@@ -8,6 +8,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
 import androidx.media3.exoplayer.dash.DashChunkSource
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.dash.DefaultDashChunkSource
@@ -145,9 +146,22 @@ class KinescopeVideoPlayer(
                 
                 val hlsMediaItem = hlsMediaItemBuilder.build()
                 
-                HlsMediaSource.Factory(defaultHttpDataSourceFactory)
+                val hlsFactory = HlsMediaSource.Factory(defaultHttpDataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .createMediaSource(hlsMediaItem)
+                
+                // Если токен пустой, явно отключаем DRM обработку
+                // Иначе ExoPlayer будет пытаться обработать DRM теги из манифеста
+                val hasValidToken = kinescopeVideo.drm?.widevine?.licenseUrl?.let { licenseUrl ->
+                    !licenseUrl.endsWith("?token=") && !licenseUrl.endsWith("&token=")
+                } ?: false
+                
+                if (!hasValidToken) {
+                    // Отключаем DRM для HLS с пустым токеном
+                    hlsFactory.setDrmSessionManagerProvider { DefaultDrmSessionManager.DRM_UNSUPPORTED }
+                    android.util.Log.d("KinescopeSDK", "DRM explicitly disabled for HLS (empty token)")
+                }
+                
+                hlsFactory.createMediaSource(hlsMediaItem)
             }
 
             else -> return
@@ -185,7 +199,9 @@ class KinescopeVideoPlayer(
                     
                     // Логируем DRM информацию для отладки
                     android.util.Log.d("KinescopeSDK", "Video loaded: ${video.title}")
+                    android.util.Log.d("KinescopeSDK", "Video isLive: ${video.isLive}")
                     android.util.Log.d("KinescopeSDK", "HLS link: ${video.hlsLink}")
+                    android.util.Log.d("KinescopeSDK", "DASH link: ${video.dashLink}")
                     android.util.Log.d("KinescopeSDK", "DRM data: ${video.drm}")
                     android.util.Log.d("KinescopeSDK", "Widevine license URL: ${video.drm?.widevine?.licenseUrl}")
                     android.util.Log.d("KinescopeSDK", "FairPlay license URL: ${video.drm?.fairplay?.licenseUrl}")
