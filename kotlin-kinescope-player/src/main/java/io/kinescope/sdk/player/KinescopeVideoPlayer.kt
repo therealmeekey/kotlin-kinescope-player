@@ -116,17 +116,17 @@ class KinescopeVideoPlayer(
                 val headers: MutableMap<String, String> = HashMap()
                 headers["Referer"] = kinescopePlayerOptions.referer
                 
-                val dataSourceFactory = DefaultHttpDataSource.Factory()
+                val baseDataSourceFactory = DefaultHttpDataSource.Factory()
                     .setUserAgent(USER_AGENT)
                     .setDefaultRequestProperties(headers)
                 
-                android.util.Log.d("KinescopeSDK", "Loading HLS: ${kinescopeVideo.hlsLink}")
+                // Используем custom DataSource который удаляет #EXT-X-KEY теги из HLS манифестов
+                val noDrmDataSourceFactory = NoDrmHttpDataSource.Factory(baseDataSourceFactory)
                 
-                // Используем custom HlsPlaylistParser который удаляет #EXT-X-KEY теги
-                // Это позволяет воспроизводить HLS потоки с DRM тегами как незашифрованный контент
-                HlsMediaSource.Factory(dataSourceFactory)
+                android.util.Log.d("KinescopeSDK", "Loading HLS with NoDrmHttpDataSource: ${kinescopeVideo.hlsLink}")
+                
+                HlsMediaSource.Factory(noDrmDataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .setPlaylistParserFactory { NoDrmHlsPlaylistParser() }
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
