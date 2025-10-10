@@ -10,9 +10,6 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
 import androidx.media3.exoplayer.drm.DrmSessionManager
-import androidx.media3.exoplayer.drm.DrmSession
-import androidx.media3.exoplayer.drm.DrmSessionEventListener
-import androidx.media3.common.Format
 import androidx.media3.exoplayer.dash.DashChunkSource
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.dash.DefaultDashChunkSource
@@ -113,43 +110,19 @@ class KinescopeVideoPlayer(
             kinescopeVideo.hlsLink.isNullOrEmpty().not() -> {
                 source = kinescopeVideo.hlsLink.orEmpty()
                 
-                // Добавляем headers с Referer для HLS (необходимо для DRM авторизации)
+                // Добавляем Referer header для авторизации
                 val headers: MutableMap<String, String> = HashMap()
                 headers["Referer"] = kinescopePlayerOptions.referer
-                headers["Origin"] = "*/*"
                 
-                val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
+                val dataSourceFactory = DefaultHttpDataSource.Factory()
                     .setUserAgent(USER_AGENT)
                     .setDefaultRequestProperties(headers)
-                    .setTransferListener(
-                        DefaultBandwidthMeter.Builder(context)
-                            .setResetOnNetworkTypeChange(false)
-                            .build()
-                    )
                 
-                // ВАЖНО: Создаем NO-OP DRM manager, который игнорирует все DRM теги в HLS манифесте
-                // Это предотвращает UnsupportedDrmException когда в манифесте есть #EXT-X-KEY, но нет валидной лицензии
-                android.util.Log.d("KinescopeSDK", "Loading HLS with NO-OP DRM manager (ignores #EXT-X-KEY tags)")
+                android.util.Log.d("KinescopeSDK", "Loading HLS: ${kinescopeVideo.hlsLink}")
                 
-                val noOpDrmSessionManager = object : DrmSessionManager {
-                    override fun preacquireSession(eventDispatcher: DrmSessionEventListener.EventDispatcher, format: Format) {
-                        // Ничего не делаем
-                    }
-
-                    override fun acquireSession(eventDispatcher: DrmSessionEventListener.EventDispatcher, format: Format): DrmSession? {
-                        // Возвращаем null, говорим что DRM не нужен
-                        return null
-                    }
-
-                    override fun getCryptoType(format: Format): Int {
-                        // Говорим что контент не зашифрован
-                        return C.CRYPTO_TYPE_NONE
-                    }
-                }
-                
-                HlsMediaSource.Factory(defaultHttpDataSourceFactory)
+                HlsMediaSource.Factory(dataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .setDrmSessionManagerProvider { noOpDrmSessionManager }
+                    .setAllowChunklessPreparation(false)
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
