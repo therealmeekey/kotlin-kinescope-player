@@ -122,7 +122,6 @@ class KinescopeVideoPlayer(
                 
                 HlsMediaSource.Factory(dataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .setAllowChunklessPreparation(false)
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
