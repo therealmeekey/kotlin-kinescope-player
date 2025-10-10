@@ -53,9 +53,12 @@ class NoDrmHttpDataSource(
                 
                 android.util.Log.d("KinescopeSDK", "Finished reading HLS manifest. Total bytes: $totalRead")
                 
+                // Закрываем wrappedDataSource после чтения
+                wrappedDataSource.close()
+                
                 if (totalRead == 0) {
                     android.util.Log.w("KinescopeSDK", "No data read from HLS manifest!")
-                    return bytesRead
+                    return 0
                 }
                 
                 val manifestText = String(buffer, 0, totalRead, Charsets.UTF_8)
@@ -84,12 +87,17 @@ class NoDrmHttpDataSource(
                 manifestBuffer = content
                 manifestStream = ByteArrayInputStream(content)
                 
-                android.util.Log.d("KinescopeSDK", "Returning manifest size: ${content.size}")
+                android.util.Log.d("KinescopeSDK", "✅ Returning MODIFIED manifest, size: ${content.size} bytes")
                 return content.size.toLong()
             } catch (e: Exception) {
                 android.util.Log.e("KinescopeSDK", "Error reading/modifying HLS manifest", e)
-                // Возвращаем исходный результат в случае ошибки
-                return bytesRead
+                try {
+                    wrappedDataSource.close()
+                } catch (closeEx: Exception) {
+                    android.util.Log.e("KinescopeSDK", "Error closing wrappedDataSource", closeEx)
+                }
+                // Возвращаем 0 в случае ошибки
+                return 0
             }
         }
         
@@ -117,8 +125,15 @@ class NoDrmHttpDataSource(
     override fun close() {
         manifestStream?.close()
         manifestBuffer = null
+        manifestStream = null
+        
+        // Закрываем wrappedDataSource только если это не манифест
+        // (для манифестов мы уже закрыли его в open())
+        if (!isM3u8) {
+            wrappedDataSource.close()
+        }
+        
         isM3u8 = false
-        wrappedDataSource.close()
     }
     
     override fun addTransferListener(transferListener: androidx.media3.datasource.TransferListener) {
