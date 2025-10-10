@@ -30,26 +30,35 @@ class NoDrmHttpDataSource(
         // Если это HLS манифест, читаем и модифицируем
         if (isM3u8) {
             val content = wrappedDataSource.uri?.let { uri ->
-                // Читаем весь манифест
-                val buffer = ByteArray(bytesRead.toInt())
+                // Читаем весь манифест (HLS манифесты обычно маленькие, < 100KB)
+                val buffer = ByteArray(1024 * 100) // 100KB буфер
                 var totalRead = 0
-                while (totalRead < bytesRead) {
-                    val read = wrappedDataSource.read(buffer, totalRead, bytesRead.toInt() - totalRead)
-                    if (read == -1) break
+                var read: Int
+                
+                while (wrappedDataSource.read(buffer, totalRead, buffer.size - totalRead).also { read = it } != -1) {
                     totalRead += read
+                    if (totalRead >= buffer.size) break
                 }
                 
-                val manifestText = String(buffer, 0, totalRead)
+                val manifestText = String(buffer, 0, totalRead, Charsets.UTF_8)
                 android.util.Log.d("KinescopeSDK", "Original HLS manifest size: $totalRead bytes")
                 
                 // Удаляем все #EXT-X-KEY строки
-                val cleanedManifest = manifestText.lines()
-                    .filterNot { it.trim().startsWith("#EXT-X-KEY:") }
-                    .joinToString("\n")
+                val lines = manifestText.lines()
+                var drmTagsRemoved = 0
+                val cleanedManifest = lines.filterNot { 
+                    if (it.trim().startsWith("#EXT-X-KEY:")) {
+                        android.util.Log.d("KinescopeSDK", "Removed DRM tag: ${it.trim()}")
+                        drmTagsRemoved++
+                        true
+                    } else {
+                        false
+                    }
+                }.joinToString("\n")
                 
-                android.util.Log.d("KinescopeSDK", "Removed DRM tags from HLS manifest. New size: ${cleanedManifest.length} bytes")
+                android.util.Log.d("KinescopeSDK", "Removed $drmTagsRemoved DRM tags from HLS manifest. New size: ${cleanedManifest.length} bytes")
                 
-                cleanedManifest.toByteArray()
+                cleanedManifest.toByteArray(Charsets.UTF_8)
             }
             
             manifestBuffer = content
