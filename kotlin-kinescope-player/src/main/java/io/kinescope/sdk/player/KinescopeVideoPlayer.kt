@@ -10,9 +10,6 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
 import androidx.media3.exoplayer.drm.DrmSessionManager
-import androidx.media3.exoplayer.drm.DrmSession
-import androidx.media3.exoplayer.drm.DrmSessionEventListener
-import androidx.media3.common.Format
 import androidx.media3.exoplayer.dash.DashChunkSource
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.dash.DefaultDashChunkSource
@@ -125,33 +122,11 @@ class KinescopeVideoPlayer(
                 
                 android.util.Log.d("KinescopeSDK", "Loading HLS: ${kinescopeVideo.hlsLink}")
                 
-                // Создаем NO-OP DRM manager который говорит что DRM не нужен
-                // Это предотвращает UnsupportedDrmException когда в HLS есть #EXT-X-KEY но нет лицензии
-                val noOpDrmManager = object : DrmSessionManager {
-                    override fun preacquireSession(
-                        eventDispatcher: DrmSessionEventListener.EventDispatcher?,
-                        format: Format
-                    ) {
-                        // Ничего не делаем
-                    }
-
-                    override fun acquireSession(
-                        eventDispatcher: DrmSessionEventListener.EventDispatcher?,
-                        format: Format
-                    ): DrmSession? {
-                        // Возвращаем null - говорим что DRM не нужен
-                        return null
-                    }
-
-                    override fun getCryptoType(format: Format): Int {
-                        // Говорим что контент не зашифрован
-                        return C.CRYPTO_TYPE_NONE
-                    }
-                }
-                
+                // Используем custom HlsPlaylistParser который удаляет #EXT-X-KEY теги
+                // Это позволяет воспроизводить HLS потоки с DRM тегами как незашифрованный контент
                 HlsMediaSource.Factory(dataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .setDrmSessionManagerProvider { noOpDrmManager }
+                    .setPlaylistParserFactory { NoDrmHlsPlaylistParser() }
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
