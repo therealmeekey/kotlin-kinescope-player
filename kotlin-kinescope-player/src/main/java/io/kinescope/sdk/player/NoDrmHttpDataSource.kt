@@ -25,23 +25,41 @@ class NoDrmHttpDataSource(
         // Проверяем, это HLS манифест?
         isM3u8 = dataSpec.uri.toString().contains(".m3u8")
         
+        android.util.Log.d("KinescopeSDK", "NoDrmHttpDataSource.open() called for: ${dataSpec.uri}")
+        android.util.Log.d("KinescopeSDK", "Is M3U8: $isM3u8")
+        
         val bytesRead = wrappedDataSource.open(dataSpec)
+        android.util.Log.d("KinescopeSDK", "Base DataSource bytesRead: $bytesRead")
+        android.util.Log.d("KinescopeSDK", "Base DataSource URI after open: ${wrappedDataSource.uri}")
         
         // Если это HLS манифест, читаем и модифицируем
         if (isM3u8) {
-            val content = wrappedDataSource.uri?.let { uri ->
+            try {
                 // Читаем весь манифест (HLS манифесты обычно маленькие, < 100KB)
                 val buffer = ByteArray(1024 * 100) // 100KB буфер
                 var totalRead = 0
                 var read: Int
                 
+                android.util.Log.d("KinescopeSDK", "Starting to read HLS manifest...")
+                
                 while (wrappedDataSource.read(buffer, totalRead, buffer.size - totalRead).also { read = it } != -1) {
+                    android.util.Log.d("KinescopeSDK", "Read $read bytes, total: ${totalRead + read}")
                     totalRead += read
-                    if (totalRead >= buffer.size) break
+                    if (totalRead >= buffer.size) {
+                        android.util.Log.w("KinescopeSDK", "Buffer full! Manifest might be truncated")
+                        break
+                    }
+                }
+                
+                android.util.Log.d("KinescopeSDK", "Finished reading HLS manifest. Total bytes: $totalRead")
+                
+                if (totalRead == 0) {
+                    android.util.Log.w("KinescopeSDK", "No data read from HLS manifest!")
+                    return bytesRead
                 }
                 
                 val manifestText = String(buffer, 0, totalRead, Charsets.UTF_8)
-                android.util.Log.d("KinescopeSDK", "Original HLS manifest size: $totalRead bytes")
+                android.util.Log.d("KinescopeSDK", "Original HLS manifest:\n$manifestText")
                 
                 // Удаляем все #EXT-X-KEY строки
                 val lines = manifestText.lines()
@@ -58,13 +76,21 @@ class NoDrmHttpDataSource(
                 
                 android.util.Log.d("KinescopeSDK", "Removed $drmTagsRemoved DRM tags from HLS manifest. New size: ${cleanedManifest.length} bytes")
                 
-                cleanedManifest.toByteArray(Charsets.UTF_8)
+                if (drmTagsRemoved > 0) {
+                    android.util.Log.d("KinescopeSDK", "Cleaned HLS manifest:\n$cleanedManifest")
+                }
+                
+                val content = cleanedManifest.toByteArray(Charsets.UTF_8)
+                manifestBuffer = content
+                manifestStream = ByteArrayInputStream(content)
+                
+                android.util.Log.d("KinescopeSDK", "Returning manifest size: ${content.size}")
+                return content.size.toLong()
+            } catch (e: Exception) {
+                android.util.Log.e("KinescopeSDK", "Error reading/modifying HLS manifest", e)
+                // Возвращаем исходный результат в случае ошибки
+                return bytesRead
             }
-            
-            manifestBuffer = content
-            manifestStream = content?.let { ByteArrayInputStream(it) }
-            
-            return content?.size?.toLong() ?: bytesRead
         }
         
         return bytesRead
