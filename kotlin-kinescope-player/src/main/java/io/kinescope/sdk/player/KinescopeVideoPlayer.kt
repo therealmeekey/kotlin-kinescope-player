@@ -10,6 +10,9 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
 import androidx.media3.exoplayer.drm.DrmSessionManager
+import androidx.media3.exoplayer.drm.DrmSession
+import androidx.media3.exoplayer.drm.DrmSessionEventListener
+import androidx.media3.common.Format
 import androidx.media3.exoplayer.dash.DashChunkSource
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.dash.DefaultDashChunkSource
@@ -42,6 +45,8 @@ class KinescopeVideoPlayer(
     private var fetch: KinescopeFetch
 
     init {
+        // Создаем ExoPlayer с отключенным DRM
+        // Это предотвращает UnsupportedDrmException когда в HLS манифесте есть #EXT-X-KEY теги
         exoPlayer = ExoPlayer.Builder(context)
             .setTrackSelector(DefaultTrackSelector(context, AdaptiveTrackSelection.Factory()))
             .setSeekBackIncrementMs(10000)
@@ -120,8 +125,33 @@ class KinescopeVideoPlayer(
                 
                 android.util.Log.d("KinescopeSDK", "Loading HLS: ${kinescopeVideo.hlsLink}")
                 
+                // Создаем NO-OP DRM manager который говорит что DRM не нужен
+                // Это предотвращает UnsupportedDrmException когда в HLS есть #EXT-X-KEY но нет лицензии
+                val noOpDrmManager = object : DrmSessionManager {
+                    override fun preacquireSession(
+                        eventDispatcher: DrmSessionEventListener.EventDispatcher?,
+                        format: Format
+                    ) {
+                        // Ничего не делаем
+                    }
+
+                    override fun acquireSession(
+                        eventDispatcher: DrmSessionEventListener.EventDispatcher?,
+                        format: Format
+                    ): DrmSession? {
+                        // Возвращаем null - говорим что DRM не нужен
+                        return null
+                    }
+
+                    override fun getCryptoType(format: Format): Int {
+                        // Говорим что контент не зашифрован
+                        return C.CRYPTO_TYPE_NONE
+                    }
+                }
+                
                 HlsMediaSource.Factory(dataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
+                    .setDrmSessionManagerProvider { noOpDrmManager }
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
