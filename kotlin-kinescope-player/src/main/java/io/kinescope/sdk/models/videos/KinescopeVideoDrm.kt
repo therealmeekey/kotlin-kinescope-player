@@ -21,3 +21,4 @@ data class KinescopeVideoDrmWidevine(
     @Json(name = "licenseUrl") val licenseUrl: String?
 ) : Serializable
 
+

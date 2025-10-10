@@ -10,6 +10,9 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
 import androidx.media3.exoplayer.drm.DrmSessionManager
+import androidx.media3.exoplayer.drm.DrmSession
+import androidx.media3.exoplayer.drm.DrmSessionEventListener
+import androidx.media3.common.Format
 import androidx.media3.exoplayer.dash.DashChunkSource
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.dash.DefaultDashChunkSource
@@ -124,12 +127,29 @@ class KinescopeVideoPlayer(
                             .build()
                     )
                 
-                // Используем простой MediaItem.fromUri() как в оригинальном SDK
-                // ExoPlayer сам решит, нужен ли DRM на основе манифеста
-                android.util.Log.d("KinescopeSDK", "Loading HLS without explicit DRM configuration")
+                // ВАЖНО: Создаем NO-OP DRM manager, который игнорирует все DRM теги в HLS манифесте
+                // Это предотвращает UnsupportedDrmException когда в манифесте есть #EXT-X-KEY, но нет валидной лицензии
+                android.util.Log.d("KinescopeSDK", "Loading HLS with NO-OP DRM manager (ignores #EXT-X-KEY tags)")
+                
+                val noOpDrmSessionManager = object : DrmSessionManager {
+                    override fun preacquireSession(eventDispatcher: DrmSessionEventListener.EventDispatcher, format: Format) {
+                        // Ничего не делаем
+                    }
+
+                    override fun acquireSession(eventDispatcher: DrmSessionEventListener.EventDispatcher, format: Format): DrmSession? {
+                        // Возвращаем null, говорим что DRM не нужен
+                        return null
+                    }
+
+                    override fun getCryptoType(format: Format): Int {
+                        // Говорим что контент не зашифрован
+                        return C.CRYPTO_TYPE_NONE
+                    }
+                }
                 
                 HlsMediaSource.Factory(defaultHttpDataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
+                    .setDrmSessionManagerProvider { noOpDrmSessionManager }
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
