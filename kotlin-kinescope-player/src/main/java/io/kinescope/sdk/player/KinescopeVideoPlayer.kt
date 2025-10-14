@@ -160,6 +160,10 @@ class KinescopeVideoPlayer(
         
         android.util.Log.d("KinescopeSDK", "Preparing player with autoplay (playWhenReady=true)")
         exoPlayer?.prepare()
+        
+        // Для live stream переходим к live edge (последним сегментам)
+        exoPlayer?.seekToDefaultPosition()
+        android.util.Log.d("KinescopeSDK", "Seeked to default position (live edge for live streams)")
     }
 
     private fun fetchUpdate() {
