@@ -23,7 +23,7 @@ class DummyDrmSessionManager : DrmSessionManager {
     }
 
     override fun acquireSession(
-        eventDispatcher: DrmSessionEventListener.EventDispatcher,
+        eventDispatcher: DrmSessionEventListener.EventDispatcher?,
         format: androidx.media3.common.Format
     ): DrmSession? {
         android.util.Log.d("KinescopeSDK", "DummyDrmSessionManager.acquireSession() - returning null (no DRM)")
