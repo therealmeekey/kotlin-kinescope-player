@@ -154,7 +154,11 @@ class KinescopeVideoPlayer(
         )
 
         exoPlayer?.setMediaSource(mediaSource)
-        exoPlayer?.playWhenReady = false
+        
+        // Начинаем воспроизведение автоматически
+        exoPlayer?.playWhenReady = true
+        
+        android.util.Log.d("KinescopeSDK", "Preparing player with autoplay (playWhenReady=true)")
         exoPlayer?.prepare()
     }
 
