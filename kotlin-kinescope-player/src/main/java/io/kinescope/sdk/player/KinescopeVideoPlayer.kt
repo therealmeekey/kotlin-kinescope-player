@@ -10,6 +10,7 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
 import androidx.media3.exoplayer.drm.DrmSessionManager
+import androidx.media3.exoplayer.drm.FrameworkMediaDrm
 import androidx.media3.exoplayer.dash.DashChunkSource
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.dash.DefaultDashChunkSource
@@ -116,19 +117,31 @@ class KinescopeVideoPlayer(
                 val headers: MutableMap<String, String> = HashMap()
                 headers["Referer"] = kinescopePlayerOptions.referer
                 
-                val baseDataSourceFactory = DefaultHttpDataSource.Factory()
+                val dataSourceFactory = DefaultHttpDataSource.Factory()
                     .setUserAgent(USER_AGENT)
                     .setDefaultRequestProperties(headers)
                 
-                // Используем custom DataSource который удаляет #EXT-X-KEY теги из HLS манифестов
-                val noDrmDataSourceFactory = NoDrmHttpDataSource.Factory(baseDataSourceFactory)
+                android.util.Log.d("KinescopeSDK", "Loading HLS: ${kinescopeVideo.hlsLink}")
+                android.util.Log.d("KinescopeSDK", "DRM info - Widevine license URL: ${kinescopeVideo.drm?.widevine?.licenseUrl}")
                 
-                android.util.Log.d("KinescopeSDK", "Loading HLS with NoDrmHttpDataSource and DummyDrmSessionManager: ${kinescopeVideo.hlsLink}")
-                
-                HlsMediaSource.Factory(noDrmDataSourceFactory)
+                val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .setDrmSessionManagerProvider { DummyDrmSessionManager() }
-                    .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
+                
+                // Если есть DRM данные, настраиваем Widevine
+                if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
+                    val drmCallback = KinescopeDrmCallback(kinescopeVideo.drm.widevine.licenseUrl.orEmpty())
+                    val drmSessionManager = DefaultDrmSessionManager.Builder()
+                        .setUuidAndExoMediaDrmProvider(
+                            androidx.media3.common.C.WIDEVINE_UUID,
+                            FrameworkMediaDrm.DEFAULT_PROVIDER
+                        )
+                        .build(drmCallback)
+                    
+                    android.util.Log.d("KinescopeSDK", "HLS: Using Widevine DRM with license URL: ${kinescopeVideo.drm.widevine.licenseUrl}")
+                    hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
+                }
+                
+                hlsFactory.createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
             else -> return
