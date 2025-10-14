@@ -31,9 +31,9 @@ class DummyDrmSessionManager : DrmSessionManager {
         eventDispatcher: DrmSessionEventListener.EventDispatcher?,
         format: androidx.media3.common.Format
     ): DrmSession? {
-        android.util.Log.d("KinescopeSDK", "DummyDrmSessionManager.acquireSession() - returning null (no DRM)")
-        // Возвращаем null - это означает что DRM не требуется
-        return null
+        android.util.Log.d("KinescopeSDK", "DummyDrmSessionManager.acquireSession() - returning ClearDrmSession (clear content)")
+        // Возвращаем ClearDrmSession - это означает что контент незашифрован
+        return ClearDrmSession()
     }
 
     override fun getCryptoType(format: androidx.media3.common.Format): Int {
