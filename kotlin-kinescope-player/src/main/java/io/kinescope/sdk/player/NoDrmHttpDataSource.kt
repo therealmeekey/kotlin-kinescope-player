@@ -19,9 +19,13 @@ class NoDrmHttpDataSource(
     private var manifestBuffer: ByteArray? = null
     private var manifestStream: ByteArrayInputStream? = null
     private var isM3u8 = false
+    private var currentUri: Uri? = null
     
     @Throws(IOException::class)
     override fun open(dataSpec: DataSpec): Long {
+        // Сохраняем URI для getUri()
+        currentUri = dataSpec.uri
+        
         // Проверяем, это HLS манифест?
         isM3u8 = dataSpec.uri.toString().contains(".m3u8")
         
@@ -114,7 +118,8 @@ class NoDrmHttpDataSource(
     }
     
     override fun getUri(): Uri? {
-        return wrappedDataSource.uri
+        // Возвращаем сохраненный URI (важно для манифестов, где wrappedDataSource уже закрыт)
+        return currentUri ?: wrappedDataSource.uri
     }
     
     override fun getResponseHeaders(): Map<String, List<String>> {
@@ -126,6 +131,7 @@ class NoDrmHttpDataSource(
         manifestStream?.close()
         manifestBuffer = null
         manifestStream = null
+        currentUri = null
         
         // Закрываем wrappedDataSource только если это не манифест
         // (для манифестов мы уже закрыли его в open())
