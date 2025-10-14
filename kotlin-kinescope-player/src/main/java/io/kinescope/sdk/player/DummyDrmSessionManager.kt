@@ -12,6 +12,11 @@ import androidx.media3.exoplayer.drm.DrmSession
 @UnstableApi
 class DummyDrmSessionManager : DrmSessionManager {
     
+    override fun setPlayer(playbackLooper: android.os.Looper, playerId: androidx.media3.exoplayer.analytics.PlayerId) {
+        // Ничего не делаем
+        android.util.Log.d("KinescopeSDK", "DummyDrmSessionManager.setPlayer() - ignoring DRM")
+    }
+    
     override fun prepare() {
         // Ничего не делаем
         android.util.Log.d("KinescopeSDK", "DummyDrmSessionManager.prepare() - ignoring DRM")
