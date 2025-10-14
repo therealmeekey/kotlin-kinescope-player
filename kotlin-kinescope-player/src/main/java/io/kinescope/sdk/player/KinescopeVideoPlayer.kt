@@ -123,10 +123,11 @@ class KinescopeVideoPlayer(
                 // Используем custom DataSource который удаляет #EXT-X-KEY теги из HLS манифестов
                 val noDrmDataSourceFactory = NoDrmHttpDataSource.Factory(baseDataSourceFactory)
                 
-                android.util.Log.d("KinescopeSDK", "Loading HLS with NoDrmHttpDataSource: ${kinescopeVideo.hlsLink}")
+                android.util.Log.d("KinescopeSDK", "Loading HLS with NoDrmHttpDataSource and DummyDrmSessionManager: ${kinescopeVideo.hlsLink}")
                 
                 HlsMediaSource.Factory(noDrmDataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
+                    .setDrmSessionManagerProvider { DummyDrmSessionManager() }
                     .createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
