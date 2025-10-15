@@ -312,6 +312,22 @@ class KinescopePlayerView(
             }
         }
 
+        override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+            super.onTimelineChanged(timeline, reason)
+            // Автоматически определяем live stream по Timeline
+            if (!timeline.isEmpty && !isLiveState) {
+                val window = Timeline.Window()
+                timeline.getWindow(0, window)
+                if (window.isLive()) {
+                    android.util.Log.d("KinescopeSDK", "Live stream detected in PlayerView, calling setLiveState()")
+                    setLiveState()
+                    
+                    // Переходим к live edge
+                    kinescopePlayer?.exoPlayer?.seekToDefaultPosition()
+                }
+            }
+        }
+
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             super.onVideoSizeChanged(videoSize)
             if (videoSize.height != 0) {
