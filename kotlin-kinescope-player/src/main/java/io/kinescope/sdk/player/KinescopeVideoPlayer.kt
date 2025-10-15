@@ -155,10 +155,10 @@ class KinescopeVideoPlayer(
 
         exoPlayer?.setMediaSource(mediaSource)
         exoPlayer?.prepare()
+        android.util.Log.d("KinescopeSDK", "Before play: playWhenReady=${exoPlayer?.playWhenReady}, state=${exoPlayer?.playbackState}")
         exoPlayer?.playWhenReady = true
         exoPlayer?.play()
-        
-        android.util.Log.d("KinescopeSDK", "Player prepared and play() called")
+        android.util.Log.d("KinescopeSDK", "After play: playWhenReady=${exoPlayer?.playWhenReady}, state=${exoPlayer?.playbackState}")
     }
 
     private fun fetchUpdate() {
