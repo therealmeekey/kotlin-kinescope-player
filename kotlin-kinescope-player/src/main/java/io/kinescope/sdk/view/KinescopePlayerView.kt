@@ -314,16 +314,17 @@ class KinescopePlayerView(
 
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
             super.onTimelineChanged(timeline, reason)
-            // Автоматически определяем live stream по Timeline
+            // Автоматически определяем live stream по Timeline (только один раз)
             if (!timeline.isEmpty && !isLiveState) {
                 val window = Timeline.Window()
                 timeline.getWindow(0, window)
                 if (window.isLive()) {
-                    android.util.Log.d("KinescopeSDK", "Live stream detected in PlayerView, calling setLiveState()")
+                    android.util.Log.d("KinescopeSDK", "Live stream detected! Setting live state and seeking to edge")
                     setLiveState()
                     
-                    // Переходим к live edge
+                    // Переходим к live edge ОДИН раз
                     kinescopePlayer?.exoPlayer?.seekToDefaultPosition()
+                    android.util.Log.d("KinescopeSDK", "Live edge seek completed, isLiveState is now true")
                 }
             }
         }

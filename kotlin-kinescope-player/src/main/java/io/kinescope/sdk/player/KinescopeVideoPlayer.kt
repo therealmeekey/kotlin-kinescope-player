@@ -155,24 +155,6 @@ class KinescopeVideoPlayer(
 
         exoPlayer?.setMediaSource(mediaSource)
         exoPlayer?.prepare()
-        
-        // Добавляем listener для отслеживания Timeline
-        exoPlayer?.addListener(object : androidx.media3.common.Player.Listener {
-            override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
-                if (!timeline.isEmpty) {
-                    val window = androidx.media3.common.Timeline.Window()
-                    timeline.getWindow(0, window)
-                    android.util.Log.d("KinescopeSDK", "Timeline changed: isLive=${window.isLive()}, isDynamic=${window.isDynamic}, windowDuration=${window.durationMs}, defaultPosition=${window.defaultPositionMs}")
-                    
-                    // Если это live stream, переходим к live edge
-                    if (window.isLive()) {
-                        android.util.Log.d("KinescopeSDK", "Live stream detected, seeking to live edge")
-                        exoPlayer?.seekToDefaultPosition()
-                    }
-                }
-            }
-        })
-        
         exoPlayer?.playWhenReady = true
         exoPlayer?.play()
         
