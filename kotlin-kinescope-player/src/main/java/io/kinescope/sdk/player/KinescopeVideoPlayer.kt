@@ -139,9 +139,24 @@ class KinescopeVideoPlayer(
                 android.util.Log.d("KinescopeSDK", "Loading HLS: ${kinescopeVideo.hlsLink}")
                 android.util.Log.d("KinescopeSDK", "DRM info - Widevine license URL: ${kinescopeVideo.drm?.widevine?.licenseUrl}")
                 
+                // Создаем медиа item с live configuration
+                val mediaItemBuilder = MediaItem.Builder()
+                    .setUri(kinescopeVideo.hlsLink.orEmpty())
+                    .setLiveConfiguration(
+                        MediaItem.LiveConfiguration.Builder()
+                            .setTargetOffsetMs(5000) // 5 секунд от live edge
+                            .setMinOffsetMs(2000)
+                            .setMaxOffsetMs(10000)
+                            .setMinPlaybackSpeed(0.95f)
+                            .setMaxPlaybackSpeed(1.05f)
+                            .build()
+                    )
+                
+                android.util.Log.d("KinescopeSDK", "MediaItem configured with LiveConfiguration: targetOffset=5s")
+                
                 val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .setAllowChunklessPreparation(false) // Требуем загрузку chunks для DRM
+                    .setAllowChunklessPreparation(false)
                 
                 // Если есть DRM данные, настраиваем Widevine
                 if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
@@ -158,7 +173,7 @@ class KinescopeVideoPlayer(
                 }
                 
                 android.util.Log.d("KinescopeSDK", "Creating HLS MediaSource with chunkless preparation = false")
-                hlsFactory.createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
+                hlsFactory.createMediaSource(mediaItemBuilder.build())
             }
 
             else -> return
