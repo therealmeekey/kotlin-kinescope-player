@@ -45,8 +45,21 @@ class KinescopeVideoPlayer(
     init {
         // Создаем ExoPlayer с отключенным DRM
         // Это предотвращает UnsupportedDrmException когда в HLS манифесте есть #EXT-X-KEY теги
+        // Увеличиваем буферы для live streaming
+        val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                15000, // min buffer (15 секунд)
+                50000, // max buffer (50 секунд)
+                2500,  // playback buffer (2.5 секунды)
+                5000   // playback rebuffer (5 секунд)
+            )
+            .setTargetBufferBytes(-1) // unlimited
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
+        
         exoPlayer = ExoPlayer.Builder(context)
             .setTrackSelector(DefaultTrackSelector(context, AdaptiveTrackSelection.Factory()))
+            .setLoadControl(loadControl)
             .setSeekBackIncrementMs(10000)
             .setSeekForwardIncrementMs(10000)
             .build()
