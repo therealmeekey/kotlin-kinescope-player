@@ -46,26 +46,14 @@ class KinescopeVideoPlayer(
     init {
         // Создаем ExoPlayer с отключенным DRM
         // Это предотвращает UnsupportedDrmException когда в HLS манифесте есть #EXT-X-KEY теги
-        // Настраиваем буферы для live streaming
-        val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                2000,  // min buffer (2 секунды) - минимум для старта
-                30000, // max buffer (30 секунд)
-                1000,  // playback buffer (1 секунда) - очень низкий порог
-                2000   // playback rebuffer (2 секунды)
-            )
-            .setTargetBufferBytes(-1) // unlimited
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-        
-        android.util.Log.d("KinescopeSDK", "LoadControl configured: min=2s, max=30s, playback=1s, rebuffer=2s")
-        
+        // Используем дефолтный LoadControl (custom может конфликтовать с DRM)
         exoPlayer = ExoPlayer.Builder(context)
             .setTrackSelector(DefaultTrackSelector(context, AdaptiveTrackSelection.Factory()))
-            .setLoadControl(loadControl)
             .setSeekBackIncrementMs(10000)
             .setSeekForwardIncrementMs(10000)
             .build()
+        
+        android.util.Log.d("KinescopeSDK", "ExoPlayer created with default LoadControl")
 
         fetch = FetchBuilder.getKinescopeFetch(kinescopePlayerOptions.referer)
     }
@@ -158,21 +146,15 @@ class KinescopeVideoPlayer(
                 // Настраиваем DRM для всех потоков (контент зашифрован!)
                 if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
                     val drmCallback = KinescopeDrmCallback(kinescopeVideo.drm.widevine.licenseUrl.orEmpty())
-                    val drmBuilder = DefaultDrmSessionManager.Builder()
+                    val drmSessionManager = DefaultDrmSessionManager.Builder()
                         .setUuidAndExoMediaDrmProvider(
                             androidx.media3.common.C.WIDEVINE_UUID,
                             FrameworkMediaDrm.DEFAULT_PROVIDER
                         )
+                        .build(drmCallback)
                     
-                    if (isLiveStream) {
-                        // Live: multi-session
-                        drmBuilder.setMultiSession(true)
-                        android.util.Log.d("KinescopeSDK", "HLS LIVE: Widevine DRM (multi-session, encrypted content)")
-                    } else {
-                        android.util.Log.d("KinescopeSDK", "HLS VOD: Widevine DRM")
-                    }
-                    
-                    hlsFactory.setDrmSessionManagerProvider { drmBuilder.build(drmCallback) }
+                    android.util.Log.d("KinescopeSDK", "HLS: Using Widevine DRM (same config for live and VOD)")
+                    hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
                 }
                 
                 hlsFactory.createMediaSource(mediaItemBuilder.build())
