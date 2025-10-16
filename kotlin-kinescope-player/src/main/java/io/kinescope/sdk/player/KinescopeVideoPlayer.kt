@@ -132,48 +132,59 @@ class KinescopeVideoPlayer(
                 val headers: MutableMap<String, String> = HashMap()
                 headers["Referer"] = kinescopePlayerOptions.referer
                 
-                val dataSourceFactory = DefaultHttpDataSource.Factory()
+                // Определяем это live stream по URL (содержит "/on-air/")
+                val isLiveStream = kinescopeVideo.hlsLink.orEmpty().contains("/on-air/")
+                
+                android.util.Log.d("KinescopeSDK", "Loading HLS: ${kinescopeVideo.hlsLink}")
+                android.util.Log.d("KinescopeSDK", "Detected as LIVE stream: $isLiveStream")
+                
+                val baseDataSourceFactory = DefaultHttpDataSource.Factory()
                     .setUserAgent(USER_AGENT)
                     .setDefaultRequestProperties(headers)
                 
-                android.util.Log.d("KinescopeSDK", "Loading HLS: ${kinescopeVideo.hlsLink}")
-                android.util.Log.d("KinescopeSDK", "DRM info - Widevine license URL: ${kinescopeVideo.drm?.widevine?.licenseUrl}")
+                // Для live используем NoDrmHttpDataSource (удаляет EXT-X-KEY теги)
+                val dataSourceFactory: DataSource.Factory = if (isLiveStream) {
+                    android.util.Log.d("KinescopeSDK", "Using NoDrmHttpDataSource for live stream (removes DRM tags)")
+                    NoDrmHttpDataSource.Factory(baseDataSourceFactory)
+                } else {
+                    baseDataSourceFactory
+                }
                 
-                // Создаем медиа item с live configuration
                 val mediaItemBuilder = MediaItem.Builder()
                     .setUri(kinescopeVideo.hlsLink.orEmpty())
-                    .setLiveConfiguration(
+                
+                // Добавляем LiveConfiguration только для live stream
+                if (isLiveStream) {
+                    mediaItemBuilder.setLiveConfiguration(
                         MediaItem.LiveConfiguration.Builder()
-                            .setTargetOffsetMs(5000) // 5 секунд от live edge
+                            .setTargetOffsetMs(5000)
                             .setMinOffsetMs(2000)
                             .setMaxOffsetMs(10000)
                             .setMinPlaybackSpeed(0.95f)
                             .setMaxPlaybackSpeed(1.05f)
                             .build()
                     )
-                
-                android.util.Log.d("KinescopeSDK", "MediaItem configured with LiveConfiguration: targetOffset=5s")
+                    android.util.Log.d("KinescopeSDK", "MediaItem configured with LiveConfiguration")
+                }
                 
                 val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
                     .setAllowChunklessPreparation(false)
                 
-                // Настраиваем DRM для live streaming с multi-session поддержкой
-                if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
+                // DRM настраиваем ТОЛЬКО для VOD (не для live)
+                if (!isLiveStream && kinescopeVideo.drm?.widevine?.licenseUrl != null) {
                     val drmCallback = KinescopeDrmCallback(kinescopeVideo.drm.widevine.licenseUrl.orEmpty())
                     val drmSessionManager = DefaultDrmSessionManager.Builder()
                         .setUuidAndExoMediaDrmProvider(
                             androidx.media3.common.C.WIDEVINE_UUID,
                             FrameworkMediaDrm.DEFAULT_PROVIDER
                         )
-                        .setMultiSession(true) // Включаем multi-session для live
                         .build(drmCallback)
                     
-                    android.util.Log.d("KinescopeSDK", "HLS LIVE: Using Widevine DRM with multi-session support")
+                    android.util.Log.d("KinescopeSDK", "HLS VOD: Using Widevine DRM")
                     hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
                 }
                 
-                android.util.Log.d("KinescopeSDK", "Creating HLS MediaSource with chunkless preparation = false")
                 hlsFactory.createMediaSource(mediaItemBuilder.build())
             }
 
