@@ -158,21 +158,21 @@ class KinescopeVideoPlayer(
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
                     .setAllowChunklessPreparation(false)
                 
-                // ВРЕМЕННО ОТКЛЮЧАЕМ DRM ДЛЯ ТЕСТА LIVE STREAM
-                android.util.Log.d("KinescopeSDK", "⚠️ DRM DISABLED FOR TESTING - checking if live stream loads without DRM")
-                // Если есть DRM данные, настраиваем Widevine
-                // if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
-                //     val drmCallback = KinescopeDrmCallback(kinescopeVideo.drm.widevine.licenseUrl.orEmpty())
-                //     val drmSessionManager = DefaultDrmSessionManager.Builder()
-                //         .setUuidAndExoMediaDrmProvider(
-                //             androidx.media3.common.C.WIDEVINE_UUID,
-                //             FrameworkMediaDrm.DEFAULT_PROVIDER
-                //         )
-                //         .build(drmCallback)
-                //     
-                //     android.util.Log.d("KinescopeSDK", "HLS: Using Widevine DRM with license URL: ${kinescopeVideo.drm.widevine.licenseUrl}")
-                //     hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
-                // }
+                // Настраиваем DRM для live streaming с multi-session поддержкой
+                if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
+                    val drmCallback = KinescopeDrmCallback(kinescopeVideo.drm.widevine.licenseUrl.orEmpty())
+                    val drmSessionManager = DefaultDrmSessionManager.Builder()
+                        .setUuidAndExoMediaDrmProvider(
+                            androidx.media3.common.C.WIDEVINE_UUID,
+                            FrameworkMediaDrm.DEFAULT_PROVIDER
+                        )
+                        .setMultiSession(true) // Включаем multi-session для live
+                        .setPlayClearContentWithoutKey(false) // Требуем ключ для зашифрованного контента
+                        .build(drmCallback)
+                    
+                    android.util.Log.d("KinescopeSDK", "HLS LIVE: Using Widevine DRM with multi-session support")
+                    hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
+                }
                 
                 android.util.Log.d("KinescopeSDK", "Creating HLS MediaSource with chunkless preparation = false")
                 hlsFactory.createMediaSource(mediaItemBuilder.build())
