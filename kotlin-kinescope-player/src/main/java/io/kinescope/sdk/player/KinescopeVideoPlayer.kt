@@ -141,6 +141,7 @@ class KinescopeVideoPlayer(
                 
                 val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
+                    .setAllowChunklessPreparation(false) // Требуем загрузку chunks для DRM
                 
                 // Если есть DRM данные, настраиваем Widevine
                 if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
@@ -156,6 +157,7 @@ class KinescopeVideoPlayer(
                     hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
                 }
                 
+                android.util.Log.d("KinescopeSDK", "Creating HLS MediaSource with chunkless preparation = false")
                 hlsFactory.createMediaSource(MediaItem.fromUri(kinescopeVideo.hlsLink.orEmpty()))
             }
 
