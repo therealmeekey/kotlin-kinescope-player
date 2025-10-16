@@ -6,6 +6,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
@@ -167,7 +168,7 @@ class KinescopeVideoPlayer(
                     android.util.Log.d("KinescopeSDK", "MediaItem configured with LiveConfiguration")
                 }
                 
-                val hlsFactory = HlsMediaSource.Factory(dataSourceFactory)
+                val hlsFactory = HlsMediaSource.Factory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
                     .setAllowChunklessPreparation(false)
                 
