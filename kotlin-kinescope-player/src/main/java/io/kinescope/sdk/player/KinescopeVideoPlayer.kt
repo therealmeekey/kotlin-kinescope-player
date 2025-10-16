@@ -167,7 +167,6 @@ class KinescopeVideoPlayer(
                             FrameworkMediaDrm.DEFAULT_PROVIDER
                         )
                         .setMultiSession(true) // Включаем multi-session для live
-                        .setPlayClearContentWithoutKey(false) // Требуем ключ для зашифрованного контента
                         .build(drmCallback)
                     
                     android.util.Log.d("KinescopeSDK", "HLS LIVE: Using Widevine DRM with multi-session support")
