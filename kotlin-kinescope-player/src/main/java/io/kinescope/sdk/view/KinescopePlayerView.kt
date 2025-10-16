@@ -319,14 +319,9 @@ class KinescopePlayerView(
                 val window = Timeline.Window()
                 timeline.getWindow(0, window)
                 if (window.isLive()) {
-                    android.util.Log.d("KinescopeSDK", "Live stream detected! Setting live state and seeking to edge")
-                    android.util.Log.d("KinescopeSDK", "Before setLiveState: playWhenReady=${kinescopePlayer?.exoPlayer?.playWhenReady}")
+                    android.util.Log.d("KinescopeSDK", "✅ Live stream detected! Setting live state (ExoPlayer will auto-seek to live edge)")
                     setLiveState()
-                    
-                    // Переходим к live edge ОДИН раз
-                    android.util.Log.d("KinescopeSDK", "Before seekToDefaultPosition: playWhenReady=${kinescopePlayer?.exoPlayer?.playWhenReady}")
-                    kinescopePlayer?.exoPlayer?.seekToDefaultPosition()
-                    android.util.Log.d("KinescopeSDK", "After seekToDefaultPosition: playWhenReady=${kinescopePlayer?.exoPlayer?.playWhenReady}, isLiveState=$isLiveState")
+                    // НЕ вызываем seekToDefaultPosition() - ExoPlayer автоматически начнет с live edge
                 }
             }
         }
