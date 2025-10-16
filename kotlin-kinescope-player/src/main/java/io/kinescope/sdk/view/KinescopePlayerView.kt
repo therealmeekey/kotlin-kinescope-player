@@ -273,6 +273,18 @@ class KinescopePlayerView(
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
+            
+            val stateName = when (playbackState) {
+                Player.STATE_IDLE -> "IDLE"
+                Player.STATE_BUFFERING -> "BUFFERING"
+                Player.STATE_READY -> "READY"
+                Player.STATE_ENDED -> "ENDED"
+                else -> "UNKNOWN($playbackState)"
+            }
+            kinescopePlayer?.exoPlayer?.let { player ->
+                android.util.Log.d("KinescopeSDK", "🎬 State: $stateName, playWhenReady=${player.playWhenReady}, buffered=${player.bufferedPosition}ms, current=${player.currentPosition}ms")
+            }
+            
             getAnalyticsArguments().let { args ->
                 when (playbackState) {
                     Player.STATE_BUFFERING -> {
@@ -319,9 +331,16 @@ class KinescopePlayerView(
                 val window = Timeline.Window()
                 timeline.getWindow(0, window)
                 if (window.isLive()) {
-                    android.util.Log.d("KinescopeSDK", "✅ Live stream detected! Setting live state (ExoPlayer will auto-seek to live edge)")
+                    android.util.Log.d("KinescopeSDK", "✅ Live stream detected! Setting live state")
                     setLiveState()
-                    // НЕ вызываем seekToDefaultPosition() - ExoPlayer автоматически начнет с live edge
+                    
+                    // Явно запускаем воспроизведение для live stream
+                    kinescopePlayer?.exoPlayer?.let { player ->
+                        android.util.Log.d("KinescopeSDK", "Forcing play() for live stream, current playWhenReady=${player.playWhenReady}, state=${player.playbackState}")
+                        player.playWhenReady = true
+                        player.play()
+                        android.util.Log.d("KinescopeSDK", "After play() call: playWhenReady=${player.playWhenReady}, state=${player.playbackState}")
+                    }
                 }
             }
         }
