@@ -166,26 +166,21 @@ class KinescopeVideoPlayer(
                 val hlsFactory = HlsMediaSource.Factory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
                 
-                // Настраиваем DRM для всех потоков (и live и VOD)
-                if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
+                // DRM настраиваем ТОЛЬКО для VOD
+                // Live stream с пустым DRM токеном игнорирует EXT-X-KEY теги автоматически
+                if (!isLiveStream && kinescopeVideo.drm?.widevine?.licenseUrl != null) {
                     val drmCallback = KinescopeDrmCallback(kinescopeVideo.drm.widevine.licenseUrl.orEmpty())
-                    val drmSessionManagerBuilder = DefaultDrmSessionManager.Builder()
+                    val drmSessionManager = DefaultDrmSessionManager.Builder()
                         .setUuidAndExoMediaDrmProvider(
                             androidx.media3.common.C.WIDEVINE_UUID,
                             FrameworkMediaDrm.DEFAULT_PROVIDER
                         )
+                        .build(drmCallback)
                     
-                    // Для live stream включаем multi-session и используем DRM для clear контента
-                    if (isLiveStream) {
-                        drmSessionManagerBuilder
-                            .setMultiSession(true)
-                        android.util.Log.d("KinescopeSDK", "HLS LIVE: Widevine DRM with multi-session")
-                    } else {
-                        android.util.Log.d("KinescopeSDK", "HLS VOD: Widevine DRM")
-                    }
-                    
-                    val drmSessionManager = drmSessionManagerBuilder.build(drmCallback)
+                    android.util.Log.d("KinescopeSDK", "HLS VOD: Using Widevine DRM")
                     hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
+                } else if (isLiveStream) {
+                    android.util.Log.d("KinescopeSDK", "HLS LIVE: Skipping DRM configuration (will ignore EXT-X-KEY tags)")
                 }
                 
                 hlsFactory.createMediaSource(mediaItemBuilder.build())
