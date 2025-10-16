@@ -143,13 +143,8 @@ class KinescopeVideoPlayer(
                     .setUserAgent(USER_AGENT)
                     .setDefaultRequestProperties(headers)
                 
-                // Для live используем NoDrmHttpDataSource (удаляет EXT-X-KEY теги)
-                val dataSourceFactory: DataSource.Factory = if (isLiveStream) {
-                    android.util.Log.d("KinescopeSDK", "Using NoDrmHttpDataSource for live stream (removes DRM tags)")
-                    NoDrmHttpDataSource.Factory(baseDataSourceFactory)
-                } else {
-                    baseDataSourceFactory
-                }
+                // НЕ используем NoDrmHttpDataSource - контент действительно зашифрован!
+                val dataSourceFactory = baseDataSourceFactory
                 
                 val mediaItemBuilder = MediaItem.Builder()
                     .setUri(kinescopeVideo.hlsLink.orEmpty())
@@ -170,19 +165,26 @@ class KinescopeVideoPlayer(
                 
                 val hlsFactory = HlsMediaSource.Factory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
-                    .setAllowChunklessPreparation(false)
                 
-                // DRM настраиваем ТОЛЬКО для VOD (не для live)
-                if (!isLiveStream && kinescopeVideo.drm?.widevine?.licenseUrl != null) {
+                // Настраиваем DRM для всех потоков (и live и VOD)
+                if (kinescopeVideo.drm?.widevine?.licenseUrl != null) {
                     val drmCallback = KinescopeDrmCallback(kinescopeVideo.drm.widevine.licenseUrl.orEmpty())
-                    val drmSessionManager = DefaultDrmSessionManager.Builder()
+                    val drmSessionManagerBuilder = DefaultDrmSessionManager.Builder()
                         .setUuidAndExoMediaDrmProvider(
                             androidx.media3.common.C.WIDEVINE_UUID,
                             FrameworkMediaDrm.DEFAULT_PROVIDER
                         )
-                        .build(drmCallback)
                     
-                    android.util.Log.d("KinescopeSDK", "HLS VOD: Using Widevine DRM")
+                    // Для live stream включаем multi-session и используем DRM для clear контента
+                    if (isLiveStream) {
+                        drmSessionManagerBuilder
+                            .setMultiSession(true)
+                        android.util.Log.d("KinescopeSDK", "HLS LIVE: Widevine DRM with multi-session")
+                    } else {
+                        android.util.Log.d("KinescopeSDK", "HLS VOD: Widevine DRM")
+                    }
+                    
+                    val drmSessionManager = drmSessionManagerBuilder.build(drmCallback)
                     hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
                 }
                 
