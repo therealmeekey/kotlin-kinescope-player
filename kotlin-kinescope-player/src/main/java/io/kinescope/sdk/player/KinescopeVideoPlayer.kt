@@ -143,8 +143,13 @@ class KinescopeVideoPlayer(
                     .setUserAgent(USER_AGENT)
                     .setDefaultRequestProperties(headers)
                 
-                // НЕ используем NoDrmHttpDataSource - контент действительно зашифрован!
-                val dataSourceFactory = baseDataSourceFactory
+                // Для live используем NoDrmHttpDataSource (удаляет EXT-X-KEY теги с пустым токеном)
+                val dataSourceFactory: DataSource.Factory = if (isLiveStream) {
+                    android.util.Log.d("KinescopeSDK", "Using NoDrmHttpDataSource for live stream")
+                    NoDrmHttpDataSource.Factory(baseDataSourceFactory)
+                } else {
+                    baseDataSourceFactory
+                }
                 
                 val mediaItemBuilder = MediaItem.Builder()
                     .setUri(kinescopeVideo.hlsLink.orEmpty())
@@ -166,8 +171,7 @@ class KinescopeVideoPlayer(
                 val hlsFactory = HlsMediaSource.Factory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
                     .setLoadErrorHandlingPolicy(KinescopeErrorHandlingPolicy())
                 
-                // DRM настраиваем ТОЛЬКО для VOD
-                // Live stream с пустым DRM токеном игнорирует EXT-X-KEY теги автоматически
+                // DRM настраиваем ТОЛЬКО для VOD (live использует NoDrmHttpDataSource)
                 if (!isLiveStream && kinescopeVideo.drm?.widevine?.licenseUrl != null) {
                     val drmCallback = KinescopeDrmCallback(kinescopeVideo.drm.widevine.licenseUrl.orEmpty())
                     val drmSessionManager = DefaultDrmSessionManager.Builder()
@@ -179,8 +183,6 @@ class KinescopeVideoPlayer(
                     
                     android.util.Log.d("KinescopeSDK", "HLS VOD: Using Widevine DRM")
                     hlsFactory.setDrmSessionManagerProvider { drmSessionManager }
-                } else if (isLiveStream) {
-                    android.util.Log.d("KinescopeSDK", "HLS LIVE: Skipping DRM configuration (will ignore EXT-X-KEY tags)")
                 }
                 
                 hlsFactory.createMediaSource(mediaItemBuilder.build())
